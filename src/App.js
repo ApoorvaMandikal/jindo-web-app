@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
+import jindo_color2 from "./assets/Jindo_color2.png";
+import Rolling from "./assets/Rolling.svg";
+import next from "./assets/next.png";
 
 const App = () => {
   const [query, setQuery] = useState("");
@@ -67,24 +70,31 @@ const App = () => {
   // };
 
   return (
-    <div
-      style={{ fontFamily: "Arial", textAlign: "center", marginTop: "50px" }}
-    >
-      <h1>Llama 2 Frontend</h1>
-      <textarea
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Type your query here..."
-        rows="5"
-        cols="50"
-        style={{ marginBottom: "20px", padding: "10px" }}
-      />
-      <br />
-      <button onClick={handleSubmit} disabled={loading}>
-        {loading ? "Processing..." : "Submit"}
-      </button>
+    <div className="flex flex-col font-sans items-center mt-12 h-full p-5 relative">
+      <img src={jindo_color2} alt="Your Logo" className="w-44 h-20" />
+      <div className="w-full justify-center flex flex-row fixed bottom-0 p-5">
+        <textarea
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Type your query here..."
+          rows="1"
+          className="m-1 p-1 w-2/4 border border-gray-300 rounded"
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="flex items-center justify-center"
+        >
+          {loading ? (
+            <img src={Rolling} alt="Loading..." className="h-6 w-6" />
+          ) : (
+            <img src={next} alt="Submit" className="h-6 w-6" />
+          )}
+        </button>
+      </div>
+
       {response && (
-        <div className="mt-6">
+        <div className="mt-6 justify-center">
           <h3 className="text-2xl font-semibold text-gray-800 mb-2">
             Response:
           </h3>
@@ -94,7 +104,7 @@ const App = () => {
           </pre>
         </div>
       )}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <div className="flex fixed mt-96 justify-center"><p className="bg-gray-200 p-4 rounded-lg text-red-600">{error}</p> </div>}
     </div>
   );
 };
