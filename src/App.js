@@ -3,108 +3,156 @@ import axios from "axios";
 import jindo_color2 from "./assets/Jindo_color2.png";
 import Rolling from "./assets/Rolling.svg";
 import next from "./assets/next.png";
+import micIcon from './assets/micIcon.png'
+import Sidebar from "./Components/Sidebar";
 
 const App = () => {
-  const [query, setQuery] = useState("");
-  const [response, setResponse] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    setError("");
-    setResponse("");
+  async function sendMessageToLlama2(conversation) {
+    try {
+      const response = await axios.post("http://localhost:11434/api/generate", {
+        model: "llama2",
+        prompt: conversation[conversation.length - 1].content, // Send the last user message as the prompt
+        stream: false,
+      });
+
+      // Extract the assistant's response
+      return response.data.response; // Extract the "response" field
+    } catch (error) {
+      console.error("Error communicating with LLaMA 2:", error.message);
+      throw new Error("Error connecting to the assistant.");
+    }
+  }
+
+  // const sendMessage = async () => {
+  //   if (!input.trim()) return;
+
+  //   // Add user message to the conversation
+  //   const newMessages = [...messages, { role: "user", content: input }];
+  //   setMessages(newMessages);
+
+  //   try {
+  //     // Use the helper function to get a response from LLaMA 2
+  //     const assistantReply = await sendMessageToLlama2(newMessages);
+
+  //     // Update state with assistant's response
+  //     setMessages((prevMessages) => [
+  //       ...prevMessages,
+  //       { role: "assistant", content: assistantReply },
+  //     ]);
+  //   } catch (error) {
+  //     setMessages((prevMessages) => [
+  //       ...prevMessages,
+  //       { role: "assistant", content: "Error connecting to the assistant." },
+  //     ]);
+  //   } finally {
+  //     setInput(""); // Clear input
+  //   }
+  // };
+
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+
+    setLoading(true); // Start loading
+    setError(""); // Clear previous errors
+
+    const newMessages = [...messages, { role: "user", content: input }];
+    setMessages(newMessages);
 
     try {
-      // Replace with your API Gateway URL
-      const apiUrl =
-        "https://kc8f44sh7l.execute-api.eu-north-1.amazonaws.com/default/llamaRequest";
-
-      const payload = {
-        inputs: query,
-        parameters: { max_new_tokens: 300, top_p: 0.9, temperature: 0.6 },
-      };
-
-      const res = await axios.post(apiUrl, payload);
-
-      // Handle successful response
-      setResponse(res.data.generated_text);
-    } catch (err) {
-      // Handle errors
-      setError("Something went wrong. Please try again.");
+      const assistantReply = await sendMessageToLlama2(newMessages);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: "assistant", content: assistantReply },
+      ]);
+    } catch (error) {
+      setError(error.message);
     } finally {
-      setLoading(false);
+      setLoading(false); // End loading
+      setInput(""); // Clear input
     }
   };
 
-  // const cleanResponse = (response) => {
-  //   if (!response) return ""; // Handle empty or undefined response
-
-  //   // Step 1: Clean bullet points
-  //   let cleanedResponse = response
-  //     .replace(/\n+/g, "\n") // Replace multiple newlines with a single newline
-  //     .trim(); // Trim leading and trailing spaces
-
-  //   // Convert bullet points into a standard list
-  //   cleanedResponse = cleanedResponse.replace(
-  //     /\* (.*?)(?=\n|$)/g,
-  //     (match, p1) => `- ${p1}`
-  //   );
-
-  //   // Step 2: Handle numbered lists (Ingredients, Instructions)
-  //   // This regex converts lines starting with numbers to a numbered list format
-  //   cleanedResponse = cleanedResponse.replace(
-  //     /(\d+)\. (.*?)(?=\n|$)/g,
-  //     (match, p1, p2) => `${p1}. ${p2}`
-  //   );
-
-  //   // Step 3: Remove or handle any incomplete part at the end
-  //   cleanedResponse = cleanedResponse.replace(/(.*?)(?=but$)/g, ""); // Adjust this to handle cases like 'but' at the end
-
-  //   // Step 4: Optional – Split into sections (Ingredients, Instructions)
-  //   // You can also separate sections based on known keywords (e.g., Ingredients, Instructions)
-  //   const sections = cleanedResponse.split(/(Ingredients:|Instructions:)/); // Splitting into sections
-  //   cleanedResponse = sections.join("\n"); // Join sections for proper display
-
-  //   return cleanedResponse;
-  // };
-
   return (
-    <div className="flex flex-col font-sans items-center mt-12 h-full p-5 relative">
-      <img src={jindo_color2} alt="Your Logo" className="w-44 h-20" />
-      <div className="w-full justify-center flex flex-row fixed bottom-0 p-5">
-        <textarea
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Type your query here..."
-          rows="1"
-          className="m-1 p-1 w-2/4 border border-gray-300 rounded"
-        />
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="flex items-center justify-center"
-        >
-          {loading ? (
-            <img src={Rolling} alt="Loading..." className="h-6 w-6" />
-          ) : (
-            <img src={next} alt="Submit" className="h-6 w-6" />
-          )}
-        </button>
-      </div>
-
-      {response && (
-        <div className="mt-6 justify-center">
-          <h3 className="text-2xl font-semibold text-gray-800 mb-2">
-            Response:
-          </h3>
-          <pre className="bg-gray-200 p-4 rounded-lg whitespace-pre-wrap break-words">
-            {/* {cleanResponse(response)} */}
-            {response}
-          </pre>
+    <div className="flex h-screen font-sans">
+      <Sidebar />
+      <div className="flex-1 p-6">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img src={jindo_color2} alt="Jindo Logo" className="w-32 h-auto" />
         </div>
-      )}
-      {error && <div className="flex fixed mt-96 justify-center"><p className="bg-gray-200 p-4 rounded-lg text-red-600">{error}</p> </div>}
+
+        {/* Chat Window */}
+        <div className="w-full p-4 flex flex-col space-y-4 h-4/6 overflow-y-auto">
+          {messages.map((message, idx) => (
+            <div
+              key={idx}
+              className={`flex ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`max-w-xs px-4 py-2 rounded-lg ${
+                  message.role === "user"
+                    ? "bg-blue-500 text-white self-end"
+                    : "bg-gray-200 text-gray-800 self-start"
+                }`}
+              >
+                {message.content}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Input Section */}
+        <div className="mt-6 flex items-center">
+          <textarea
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask Jindo AI using voice or text"
+            rows="1"
+            className="flex-grow p-3 border border-gray-300 rounded-3xl">
+            <button
+            // onClick={startListening}
+            className="ml-2 p-3 bg-gray-300 rounded-3xl"
+          >
+            <img
+              src={micIcon}
+              alt="Mic"
+              className= "h-6 w-6"
+              // {
+              //   ${
+              //   isListening ? "bg-red-500 rounded-full" : ""
+              // }`
+            // }
+            />
+          </button>
+          </textarea>
+       
+          <button
+            onClick={sendMessage}
+            disabled={loading}
+            className="ml-2 p-3 text-white rounded-md disabled:bg-gray-400"
+          >
+            {loading ? (
+              <img src={Rolling} alt="Loading..." className="h-6 w-6" />
+            ) : (
+              <img src={next} alt="Submit" className="h-6 w-6" />
+            )}
+          </button>
+        </div>
+
+        {error && (
+          <div className="text-red-600 mt-4 text-sm">
+            <p>{error}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
