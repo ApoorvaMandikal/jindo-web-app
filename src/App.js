@@ -3,7 +3,7 @@ import axios from "axios";
 import jindo_color2 from "./assets/Jindo_color2.png";
 import Rolling from "./assets/Rolling.svg";
 import next from "./assets/next.png";
-import micIcon from './assets/micIcon.png'
+import micIcon from "./assets/micIcon.png";
 import Sidebar from "./Components/Sidebar";
 
 const App = () => {
@@ -11,6 +11,7 @@ const App = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isListening, setIsListening] = useState(false);
 
   async function sendMessageToLlama2(conversation) {
     try {
@@ -77,6 +78,31 @@ const App = () => {
     }
   };
 
+  const startListening = () => {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      alert("Speech recognition not supported in this browser.");
+      return;
+    }
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript); // Update input field with the recognized text
+    };
+
+    recognition.onerror = (event) => {
+      setError(`Speech recognition error: ${event.error}`);
+    };
+
+    recognition.start();
+  };
+
   return (
     <div className="flex h-screen font-sans">
       <Sidebar />
@@ -98,7 +124,7 @@ const App = () => {
               <div
                 className={`max-w-xs px-4 py-2 rounded-lg ${
                   message.role === "user"
-                    ? "bg-blue-500 text-white self-end"
+                    ? "bg-jindo-blue text-white self-end"
                     : "bg-gray-200 text-gray-800 self-start"
                 }`}
               >
@@ -109,35 +135,29 @@ const App = () => {
         </div>
 
         {/* Input Section */}
-        <div className="mt-6 flex items-center">
-          <textarea
+        <div className="mt-12 flex items-center justify-center">
+          <div className="relative w-3/5">
+          <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Jindo AI using voice or text"
-            rows="1"
-            className="flex-grow p-3 border border-gray-300 rounded-3xl">
-            <button
-            // onClick={startListening}
-            className="ml-2 p-3 bg-gray-300 rounded-3xl"
-          >
+            className="w-full p-3 pr-10 border border-gray-300 rounded-3xl"
+          ></input>
+          <button onClick={startListening} className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-300 ml-2">
             <img
               src={micIcon}
               alt="Mic"
-              className= "h-6 w-6"
-              // {
-              //   ${
-              //   isListening ? "bg-red-500 rounded-full" : ""
-              // }`
-            // }
+              className={`h-6 w-6 ${
+                isListening ? "bg-red-500 rounded-full" : ""
+              }`}
             />
           </button>
-          </textarea>
-       
+          </div>
           <button
             onClick={sendMessage}
             disabled={loading}
-            className="ml-2 p-3 text-white rounded-md disabled:bg-gray-400"
+            className="ml-2 p-3 text-white rounded-md"
           >
             {loading ? (
               <img src={Rolling} alt="Loading..." className="h-6 w-6" />
