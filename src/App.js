@@ -113,7 +113,7 @@ const App = () => {
         </div>
 
         {/* Chat Window */}
-        <div className="w-full p-4 flex flex-col space-y-4 h-4/6 overflow-y-auto">
+        <div className="w-full p-4 flex flex-col space-y-4 h-3/4 overflow-y-auto">
           {messages.map((message, idx) => (
             <div
               key={idx}
@@ -135,8 +135,8 @@ const App = () => {
         </div>
 
         {/* Input Section */}
-        <div className="mt-12 flex items-center justify-center">
-          <div className="relative w-3/5">
+        <div className="mt-14 md:mt-8 flex items-center justify-center">
+          <div className="relative w-4/5 md:w-3/5">
           <input
             type="text"
             value={input}
