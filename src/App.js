@@ -7,10 +7,10 @@ import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
 
 const App = () => {
-  const [messages, setMessages] = useState([]);
+  // const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); 
   const [isListening, setIsListening] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState({});
@@ -97,7 +97,7 @@ const App = () => {
 
     setLoading(true); // Start loading
     setError(""); // Clear errors
-
+ 
     const newMessage = { role: "user", content: input };
 
     setChatHistory((prev) => {
@@ -208,6 +208,11 @@ const App = () => {
             )}
           </div>
         </div>
+        {error && (
+          <div className="text-red-600 mt-4 text-sm text-center">
+            <p>{error}</p>
+            </div>
+        )}
 
         {/* Input Section */}
         <div className="p-4 flex items-center justify-center">
@@ -227,7 +232,7 @@ const App = () => {
                 src={micIcon}
                 alt="Mic"
                 className={`h-6 w-6 ${
-                  isListening ? "bg-red-500 rounded-full" : ""
+                  isListening ? "bg-jindo-orange rounded-full" : ""
                 }`}
               />
             </button>
@@ -245,11 +250,7 @@ const App = () => {
           </button>
         </div>
 
-        {error && (
-          <div className="text-red-600 mt-4 text-sm">
-            <p>{error}</p>
-          </div>
-        )}
+        
       </div>
     </div>
   );
