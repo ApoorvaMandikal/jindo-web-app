@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
-import jindo_color2 from "./assets/Jindo_color2.png";
 import Rolling from "./assets/Rolling.svg";
 import next from "./assets/next.png";
 import micIcon from "./assets/micIcon.png";
 import Sidebar from "./Components/Sidebar";
+import Header from "./Components/Header";
 
 const App = () => {
   const [messages, setMessages] = useState([]);
@@ -12,6 +12,9 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   async function sendMessageToLlama2(conversation) {
     try {
@@ -105,54 +108,67 @@ const App = () => {
 
   return (
     <div className="flex h-screen font-sans">
-      <Sidebar />
-      <div className="flex-1 p-6">
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <img src={jindo_color2} alt="Jindo Logo" className="w-32 h-auto" />
-        </div>
+      {/* Sidebar */}
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
-        {/* Chat Window */}
-        <div className="w-full p-4 flex flex-col space-y-4 h-3/4 overflow-y-auto">
-          {messages.map((message, idx) => (
-            <div
-              key={idx}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
+      {/* Backdrop */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black opacity-50 z-40"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <Header toggleSidebar={toggleSidebar} />
+
+        {/* Chat Section */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="w-full p-4 flex flex-col space-y-4">
+            {messages.map((message, idx) => (
               <div
-                className={`max-w-xs px-4 py-2 rounded-lg ${
-                  message.role === "user"
-                    ? "bg-jindo-blue text-white self-end"
-                    : "bg-gray-200 text-gray-800 self-start"
+                key={idx}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                {message.content}
+                <div
+                  className={`max-w-xs px-4 py-2 rounded-lg ${
+                    message.role === "user"
+                      ? "bg-jindo-blue text-white self-end"
+                      : "bg-gray-200 text-gray-800 self-start"
+                  }`}
+                >
+                  {message.content}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Input Section */}
-        <div className="mt-14 md:mt-8 flex items-center justify-center">
+        <div className="p-4 flex items-center justify-center">
           <div className="relative w-4/5 md:w-3/5">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Jindo AI using voice or text"
-            className="w-full p-3 pr-10 border border-gray-300 rounded-3xl"
-          ></input>
-          <button onClick={startListening} className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-300 ml-2">
-            <img
-              src={micIcon}
-              alt="Mic"
-              className={`h-6 w-6 ${
-                isListening ? "bg-red-500 rounded-full" : ""
-              }`}
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask Jindo AI using voice or text"
+              className="w-full p-3 pr-10 border border-gray-300 rounded-3xl"
             />
-          </button>
+            <button
+              onClick={startListening}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-300 ml-2"
+            >
+              <img
+                src={micIcon}
+                alt="Mic"
+                className={`h-6 w-6 ${
+                  isListening ? "bg-red-500 rounded-full" : ""
+                }`}
+              />
+            </button>
           </div>
           <button
             onClick={sendMessage}
