@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Rolling from "./assets/Rolling.svg";
 import next from "./assets/next.png";
@@ -13,6 +13,26 @@ const App = () => {
   const [error, setError] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState({});
+  const [currentChatId, setCurrentChatId] = useState(null);
+
+  useEffect(() => {
+    sessionStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+    sessionStorage.setItem("currentChatId", currentChatId);
+  }, [chatHistory, currentChatId]);
+
+  useEffect(() => {
+    const savedChatHistory = sessionStorage.getItem("chatHistory");
+    const savedCurrentChatId = sessionStorage.getItem("currentChatId");
+
+    if (savedChatHistory) {
+      setChatHistory(JSON.parse(savedChatHistory));
+    }
+
+    if (savedCurrentChatId) {
+      setCurrentChatId(savedCurrentChatId);
+    }
+  }, []);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -58,25 +78,58 @@ const App = () => {
   //   }
   // };
 
+  const createNewChat = () => {
+    const newChatId = Date.now().toString(); // Unique chat ID
+    const newChat = { date: new Date().toISOString(), messages: [] };
+
+    setChatHistory((prev) => {
+      const updatedHistory = { ...prev, [newChatId]: newChat };
+      sessionStorage.setItem("chatHistory", JSON.stringify(updatedHistory)); // Update session storage
+      return updatedHistory;
+    });
+
+    setCurrentChatId(newChatId); // Switch to the new chat
+    sessionStorage.setItem("currentChatId", newChatId); // Update session storage
+  };
+
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !currentChatId) return;
 
     setLoading(true); // Start loading
-    setError(""); // Clear previous errors
+    setError(""); // Clear errors
 
-    const newMessages = [...messages, { role: "user", content: input }];
-    setMessages(newMessages);
+    const newMessage = { role: "user", content: input };
+
+    setChatHistory((prev) => {
+      const updatedChat = {
+        ...prev[currentChatId],
+        messages: [...(prev[currentChatId]?.messages || []), newMessage],
+      };
+
+      return { ...prev, [currentChatId]: updatedChat };
+    });
 
     try {
-      const assistantReply = await sendMessageToLlama2(newMessages);
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { role: "assistant", content: assistantReply },
+      const assistantReply = await sendMessageToLlama2([
+        ...(chatHistory[currentChatId]?.messages || []),
+        newMessage,
       ]);
+
+      setChatHistory((prev) => {
+        const updatedChat = {
+          ...prev[currentChatId],
+          messages: [
+            ...(prev[currentChatId]?.messages || []),
+            { role: "assistant", content: assistantReply },
+          ],
+        };
+
+        return { ...prev, [currentChatId]: updatedChat };
+      });
     } catch (error) {
       setError(error.message);
     } finally {
-      setLoading(false); // End loading
+      setLoading(false);
       setInput(""); // Clear input
     }
   };
@@ -109,7 +162,14 @@ const App = () => {
   return (
     <div className="flex h-screen font-sans">
       {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <Sidebar
+        isOpen={isSidebarOpen}
+        toggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+        chatHistory={chatHistory}
+        currentChatId={currentChatId}
+        setCurrentChatId={setCurrentChatId}
+        createNewChat={createNewChat}
+      />
 
       {/* Backdrop */}
       {isSidebarOpen && (
@@ -121,29 +181,31 @@ const App = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <Header toggleSidebar={toggleSidebar} />
+        <Header toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
 
         {/* Chat Section */}
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="w-full p-4 flex flex-col space-y-4">
-            {messages.map((message, idx) => (
-              <div
-                key={idx}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
+            {(chatHistory[currentChatId]?.messages || []).map(
+              (message, idx) => (
                 <div
-                  className={`max-w-xs px-4 py-2 rounded-lg ${
-                    message.role === "user"
-                      ? "bg-jindo-blue text-white self-end"
-                      : "bg-gray-200 text-gray-800 self-start"
+                  key={idx}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {message.content}
+                  <div
+                    className={`max-w-xs px-4 py-2 rounded-lg ${
+                      message.role === "user"
+                        ? "bg-jindo-blue text-white self-end"
+                        : "bg-gray-200 text-gray-800 self-start"
+                    }`}
+                  >
+                    {message.content}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
 
