@@ -10,7 +10,7 @@ const App = () => {
   // const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(""); 
+  const [error, setError] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState({});
@@ -52,32 +52,6 @@ const App = () => {
     }
   }
 
-  // const sendMessage = async () => {
-  //   if (!input.trim()) return;
-
-  //   // Add user message to the conversation
-  //   const newMessages = [...messages, { role: "user", content: input }];
-  //   setMessages(newMessages);
-
-  //   try {
-  //     // Use the helper function to get a response from LLaMA 2
-  //     const assistantReply = await sendMessageToLlama2(newMessages);
-
-  //     // Update state with assistant's response
-  //     setMessages((prevMessages) => [
-  //       ...prevMessages,
-  //       { role: "assistant", content: assistantReply },
-  //     ]);
-  //   } catch (error) {
-  //     setMessages((prevMessages) => [
-  //       ...prevMessages,
-  //       { role: "assistant", content: "Error connecting to the assistant." },
-  //     ]);
-  //   } finally {
-  //     setInput(""); // Clear input
-  //   }
-  // };
-
   const createNewChat = () => {
     const newChatId = Date.now().toString(); // Unique chat ID
     const newChat = { date: new Date().toISOString(), messages: [] };
@@ -97,7 +71,7 @@ const App = () => {
 
     setLoading(true); // Start loading
     setError(""); // Clear errors
- 
+
     const newMessage = { role: "user", content: input };
 
     setChatHistory((prev) => {
@@ -195,13 +169,15 @@ const App = () => {
                   }`}
                 >
                   <div
-                    className={`max-w-xs px-4 py-2 rounded-lg ${
+                    className={`px-4 py-2 rounded-lg ${
                       message.role === "user"
                         ? "bg-jindo-blue text-white self-end"
                         : "bg-gray-200 text-gray-800 self-start"
                     }`}
                   >
-                    {message.content}
+                    {message.content.split("\n").map((line, idx) => (
+                      <p key={idx}>{line}</p>
+                    ))}
                   </div>
                 </div>
               )
@@ -211,7 +187,7 @@ const App = () => {
         {error && (
           <div className="text-red-600 mt-4 text-sm text-center">
             <p>{error}</p>
-            </div>
+          </div>
         )}
 
         {/* Input Section */}
@@ -223,6 +199,11 @@ const App = () => {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask Jindo AI using voice or text"
               className="w-full p-3 pr-10 border border-gray-300 rounded-3xl"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  sendMessage();
+                }
+              }}
             />
             <button
               onClick={startListening}
@@ -249,8 +230,6 @@ const App = () => {
             )}
           </button>
         </div>
-
-        
       </div>
     </div>
   );

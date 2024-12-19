@@ -1,7 +1,7 @@
 import React from "react";
 import jindo_color2 from "./../assets/Jindo_color2.png";
-import hamburger from "../assets/hamburger.png";
 import chatIcon from '../assets/chatIcon.png'
+import close from '../assets/close.png'
 
 const Sidebar = ({
   isOpen,
@@ -18,14 +18,14 @@ const Sidebar = ({
       }`}
     >
       <div className="p-4 flex flex-col space-y-4 h-full">
-        <div className="flex justify-between md:justify-center items-center mb-4">
+        <div className="flex justify-between md:justify-center items-center">
           <button
             onClick={toggleSidebar}
             className="text-gray-800 text-2xl md:hidden"
           >
-            <img src={hamburger} alt="Close Sidebar" className="w-12 h-auto" />
+            <img src={close} alt="Close Sidebar" className="w-6 h-auto" />
           </button>
-          <img src={jindo_color2} alt="Jindo Logo" className="w-28 h-auto" />
+          <img src={jindo_color2} alt="Jindo Logo" className="w-28 h-auto hidden md:block" />
         </div>
         <hr className="border-gray-600"></hr>
         <button
