@@ -1,9 +1,55 @@
 import React from "react";
 import jindo_color2 from "./../assets/Jindo_color2.png";
-import hamburger from "../assets/hamburger.png"
-import chat from "./../assets/chat.png";
+import chatIcon from "../assets/chatIcon.png";
+import close from "../assets/close.png";
 
-const Sidebar = ({isOpen, toggleSidebar}) => {
+// Helper function to categorize chats by date
+const categorizeChats = (chatHistory) => {
+  const categories = {
+    today: [],
+    yesterday: [],
+    past7Days: [],
+    past30Days: [],
+  };
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfYesterday = new Date(startOfToday);
+  startOfYesterday.setDate(startOfToday.getDate() - 1);
+
+  const startOf7DaysAgo = new Date(startOfToday);
+  startOf7DaysAgo.setDate(startOfToday.getDate() - 7);
+
+  const startOf30DaysAgo = new Date(startOfToday);
+  startOf30DaysAgo.setDate(startOfToday.getDate() - 30);
+
+  Object.entries(chatHistory).forEach(([chatId, chat]) => {
+    const chatDate = new Date(chat.date);
+
+    if (chatDate >= startOfToday) {
+      categories.today.push({ chatId, ...chat });
+    } else if (chatDate >= startOfYesterday) {
+      categories.yesterday.push({ chatId, ...chat });
+    } else if (chatDate >= startOf7DaysAgo) {
+      categories.past7Days.push({ chatId, ...chat });
+    } else if (chatDate >= startOf30DaysAgo) {
+      categories.past30Days.push({ chatId, ...chat });
+    }
+  });
+
+  return categories;
+};
+
+const Sidebar = ({
+  isOpen,
+  toggleSidebar,
+  chatHistory,
+  currentChatId,
+  setCurrentChatId,
+  createNewChat,
+}) => {
+  const categorizedChats = categorizeChats(chatHistory);
+
   return (
     <div
       className={`md:static md:translate-x-0 fixed top-0 left-0 h-screen w-64 bg-black text-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
@@ -11,48 +57,125 @@ const Sidebar = ({isOpen, toggleSidebar}) => {
       }`}
     >
       <div className="p-4 flex flex-col space-y-4 h-full">
-        <div className="flex justify-between md:justify-center items-center mb-4">
+        {/* Close Button */}
+        <div className="flex justify-between md:justify-center items-center">
           <button
             onClick={toggleSidebar}
             className="text-gray-800 text-2xl md:hidden"
           >
-            <img src={hamburger} alt="Close Sidebar" className="w-12 h-auto" />
+            <img src={close} alt="Close Sidebar" className="w-6 h-auto" />
           </button>
-          <img src={jindo_color2} alt="Jindo Logo" className="w-28 h-auto" />
+          <img
+            src={jindo_color2}
+            alt="Jindo Logo"
+            className="w-28 h-auto hidden md:block"
+          />
         </div>
         <hr className="border-gray-600"></hr>
-        <button className="bg-jindo-blue text-white py-4 px-4 rounded-3xl mx-4 my-8">
+
+        {/* New Chat Button */}
+        <button
+          className="bg-jindo-blue text-white py-4 px-4 rounded-3xl mx-4 my-8"
+          onClick={createNewChat}
+        >
           + New Chat
         </button>
-        <div className="space-y-2">
-          <p className="text-gray-400">TODAY</p>
-          <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-md">
-              <img src={chat} alt="chat" className="h-auto" />
-            </div>
-            <p>Sammy, 7:30AM</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-md">
-              <img src={chat} alt="chat" className="h-auto" />
-            </div>
-            <p>Bobby, 7:00AM</p>
-          </div>
-        </div>
-        <div className="space-y-2 mt-4">
-          <p className="text-gray-400">YESTERDAY</p>
-          <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-md">
-              <img src={chat} alt="chat" className="h-auto" />
-            </div>
-            <p>Romo, 10:00AM</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-md">
-              <img src={chat} alt="chat" className="h-auto" />
-            </div>
-            <p>Abby, 9:30AM</p>
-          </div>
+
+        {/* Grouped Chats */}
+        <div className="space-y-4">
+          {/* Today */}
+          {categorizedChats.today.length > 0 && (
+            <>
+              <p className="text-gray-400">TODAY</p>
+              {categorizedChats.today.map(({ chatId, date }) => (
+                <div
+                  key={chatId}
+                  className={`flex items-center space-x-2 cursor-pointer rounded-3xl ${
+                    chatId === currentChatId ? "bg-gray-700" : ""
+                  }`}
+                  onClick={() => setCurrentChatId(chatId)}
+                >
+                  <div className="p-2 rounded-md">
+                    <img src={chatIcon} alt="chat" className="h-auto" />
+                  </div>
+                  <p>
+                    {new Date(date).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Yesterday */}
+          {categorizedChats.yesterday.length > 0 && (
+            <>
+              <p className="text-gray-400">YESTERDAY</p>
+              {categorizedChats.yesterday.map(({ chatId, date }) => (
+                <div
+                  key={chatId}
+                  className={`flex items-center space-x-2 cursor-pointer rounded-3xl ${
+                    chatId === currentChatId ? "bg-gray-700" : ""
+                  }`}
+                  onClick={() => setCurrentChatId(chatId)}
+                >
+                  <div className="p-2 rounded-md">
+                    <img src={chatIcon} alt="chat" className="h-auto" />
+                  </div>
+                  <p>
+                    {new Date(date).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Past 7 Days */}
+          {categorizedChats.past7Days.length > 0 && (
+            <>
+              <p className="text-gray-400">PREVIOUS 7 DAYS</p>
+              {categorizedChats.past7Days.map(({ chatId, date }) => (
+                <div
+                  key={chatId}
+                  className={`flex items-center space-x-2 cursor-pointer rounded-3xl ${
+                    chatId === currentChatId ? "bg-gray-700" : ""
+                  }`}
+                  onClick={() => setCurrentChatId(chatId)}
+                >
+                  <div className="p-2 rounded-md">
+                    <img src={chatIcon} alt="chat" className="h-auto" />
+                  </div>
+                  <p>{new Date(date).toLocaleDateString()}</p>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Past 30 Days */}
+          {categorizedChats.past30Days.length > 0 && (
+            <>
+              <p className="text-gray-400">PREVIOUS 30 DAYS</p>
+              {categorizedChats.past30Days.map(({ chatId, date }) => (
+                <div
+                  key={chatId}
+                  className={`flex items-center space-x-2 cursor-pointer rounded-3xl ${
+                    chatId === currentChatId ? "bg-gray-700" : ""
+                  }`}
+                  onClick={() => setCurrentChatId(chatId)}
+                >
+                  <div className="p-2 rounded-md">
+                    <img src={chatIcon} alt="chat" className="h-auto" />
+                  </div>
+                  <p>{new Date(date).toLocaleDateString()}</p>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       </div>
     </div>

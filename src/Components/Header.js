@@ -13,7 +13,7 @@ const Header = ({ toggleSidebar }) => {
         <img src={hamburger} alt="Sidebar" className="w-12 h-auto" />
       </button>
       {/* Logo */}
-      <img src={jindo_color2} alt="Jindo Logo" className="w-32 h-auto" />
+      <img src={jindo_color2} alt="Jindo Logo" className="w-32 h-auto md:hidden" />
     </div>
   );
 };
