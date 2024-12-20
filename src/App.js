@@ -15,23 +15,34 @@ const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState({});
   const [currentChatId, setCurrentChatId] = useState(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    sessionStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-    sessionStorage.setItem("currentChatId", currentChatId);
-  }, [chatHistory, currentChatId]);
-
-  useEffect(() => {
-    const savedChatHistory = sessionStorage.getItem("chatHistory");
-    const savedCurrentChatId = sessionStorage.getItem("currentChatId");
-
-    if (savedChatHistory) {
-      setChatHistory(JSON.parse(savedChatHistory));
+    if (initialized) {
+      localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+      localStorage.setItem("currentChatId", currentChatId);
     }
+  }, [chatHistory, currentChatId, initialized]);
 
-    if (savedCurrentChatId) {
+  useEffect(() => {
+    const savedChatHistory =
+      JSON.parse(localStorage.getItem("chatHistory")) || {};
+    const savedCurrentChatId = localStorage.getItem("currentChatId");
+
+    if (Object.keys(savedChatHistory).length && savedCurrentChatId) {
+      setChatHistory(savedChatHistory);
       setCurrentChatId(savedCurrentChatId);
+    } else {
+      const defaultChatId = Date.now().toString();
+      const defaultChat = { date: new Date().toISOString(), messages: [] };
+      const defaultHistory = { [defaultChatId]: defaultChat };
+
+      setChatHistory(defaultHistory);
+      setCurrentChatId(defaultChatId);
+      localStorage.setItem("chatHistory", JSON.stringify(defaultHistory));
+      localStorage.setItem("currentChatId", defaultChatId);
     }
+    setInitialized(true); // Ensure re-render after initialization
   }, []);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -58,16 +69,38 @@ const App = () => {
 
     setChatHistory((prev) => {
       const updatedHistory = { ...prev, [newChatId]: newChat };
-      sessionStorage.setItem("chatHistory", JSON.stringify(updatedHistory)); // Update session storage
+      localStorage.setItem("chatHistory", JSON.stringify(updatedHistory));
+      localStorage.setItem("currentChatId", newChatId);
       return updatedHistory;
     });
-
-    setCurrentChatId(newChatId); // Switch to the new chat
-    sessionStorage.setItem("currentChatId", newChatId); // Update session storage
+    
+    setCurrentChatId(newChatId);
+    
   };
 
   const sendMessage = async () => {
-    if (!input.trim() || !currentChatId) return;
+    if (!input.trim()) return;
+
+    // Ensure currentChatId is valid
+    if (!currentChatId) {
+      const defaultChatId = Date.now().toString();
+      const defaultChat = { date: new Date().toISOString(), messages: [] };
+
+      setChatHistory((prev) => ({
+        ...prev,
+        [defaultChatId]: defaultChat,
+      }));
+      setCurrentChatId(defaultChatId);
+
+      localStorage.setItem(
+        "chatHistory",
+        JSON.stringify({
+          ...chatHistory,
+          [defaultChatId]: defaultChat,
+        })
+      );
+      localStorage.setItem("currentChatId", defaultChatId);
+    }
 
     setLoading(true); // Start loading
     setError(""); // Clear errors
@@ -88,7 +121,6 @@ const App = () => {
         ...(chatHistory[currentChatId]?.messages || []),
         newMessage,
       ]);
-
       setChatHistory((prev) => {
         const updatedChat = {
           ...prev[currentChatId],
@@ -98,7 +130,9 @@ const App = () => {
           ],
         };
 
-        return { ...prev, [currentChatId]: updatedChat };
+        const updatedHistory = { ...prev, [currentChatId]: updatedChat };
+        localStorage.setItem("chatHistory", JSON.stringify(updatedHistory));
+        return updatedHistory;
       });
     } catch (error) {
       setError(error.message);
