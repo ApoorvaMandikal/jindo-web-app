@@ -9,13 +9,13 @@ const Header = ({ toggleSidebar }) => {
   const logout = () => {
     authentication
       .signOut()
-      .then(() => {
-        navigate("/login"); // Redirect to the login page
-      })
-      .catch((error) => {
-        console.error("Logout error:", error.message);
-        alert("Error during logout, please try again.");
-      });
+      // .then(() => {
+      //   navigate("/login"); // Redirect to the login page
+      // })
+      // .catch((error) => {
+      //   console.error("Logout error:", error.message);
+      //   alert("Error during logout, please try again.");
+      // });
   };
 
   return (
