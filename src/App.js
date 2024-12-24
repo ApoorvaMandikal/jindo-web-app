@@ -239,7 +239,11 @@ const App = () => {
         )}
 
         {/* Input Section */}
-        <div className="p-4 flex items-center justify-center">
+        <div
+          className={`p-4 flex items-center justify-center ${
+            chatHistory[currentChatId]?.messages?.length ? "mt-auto" : "h-full"
+          }`}
+        >
           <div className="w-4/5 md:w-3/5">
             {/* <input
               type="text"
@@ -255,23 +259,27 @@ const App = () => {
             /> */}
             <button
               onClick={startListening}
-              className={`transform -translate-y-1/2 p-2 ml-2 border border-gray-300 rounded-3xl w-full flex items-center justify-center relative ${
+              className={`transform p-2 ml-2 border border-black rounded-3xl w-full flex items-center justify-center relative ${
                 isListening ? "bg-jindo-orange text-white" : ""
               }`}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
+                  e.preventDefault();
                   sendMessage();
-                }}}
+                }
+              }}
             >
-              <img src={micIcon} alt="Mic" className="absolute left-3 h-6 w-6" />
+              <img
+                src={micIcon}
+                alt="Mic"
+                className="absolute left-3 h-6 w-6"
+              />
               {isListening ? (
                 <span className="text-white text-center">Listening...</span>
               ) : input ? (
-                <span className="text-jindo-orange text-center">
-                  {input}
-                </span>
+                <span className="text-jindo-orange">{input}</span>
               ) : (
-                <span className="text-jindo-orange text-center">
+                <span className="text-jindo-orange font-bold text-center">
                   Tap to ask Jindo a question
                 </span>
               )}
