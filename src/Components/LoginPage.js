@@ -43,15 +43,15 @@ const LoginPage = () => {
   };
 
 
-//   useEffect(() => {
-//     onAuthStateChanged(authentication, (user) => {
-//       if (user) {
-//         navigate("/");
-//       } else {
-//         authentication.signOut();
-//       }
-//     });
-//   }, []);
+  useEffect(() => {
+    onAuthStateChanged(authentication, (user) => {
+      if (user) {
+        navigate("/");
+      } else {
+        authentication.signOut();
+      }
+    });
+  }, []);
 
   return (
     <div className="flex h-screen">
