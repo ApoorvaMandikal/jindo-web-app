@@ -12,6 +12,7 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [recognitionInstance, setRecognitionInstance] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState({});
   const [currentChatId, setCurrentChatId] = useState(null);
@@ -73,9 +74,8 @@ const App = () => {
       localStorage.setItem("currentChatId", newChatId);
       return updatedHistory;
     });
-    
+
     setCurrentChatId(newChatId);
-    
   };
 
   const sendMessage = async () => {
@@ -152,19 +152,33 @@ const App = () => {
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
 
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
+    if (isListening) {
+      // Stop recognition
+      if (recognitionInstance) {
+        recognitionInstance.stop();
+        setIsListening(false);
+      }
+    } else {
+      // Start recognition
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
 
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript); // Update input field with the recognized text
-    };
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
 
-    recognition.onerror = (event) => {
-      setError(`Speech recognition error: ${event.error}`);
-    };
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript); // Update recognized text
+      };
 
-    recognition.start();
+      recognition.onerror = (event) => {
+        alert(`Speech recognition error: ${event.error}`);
+        setIsListening(false);
+      };
+
+      recognition.start();
+      setRecognitionInstance(recognition); // Save the instance to stop later
+    }
   };
 
   return (
@@ -225,9 +239,13 @@ const App = () => {
         )}
 
         {/* Input Section */}
-        <div className="p-4 flex items-center justify-center">
-          <div className="relative w-4/5 md:w-3/5">
-            <input
+        <div
+          className={`p-4 flex items-center justify-center ${
+            chatHistory[currentChatId]?.messages?.length ? "mt-auto" : "h-full"
+          }`}
+        >
+          <div className="w-4/5 md:w-3/5">
+            {/* <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -238,18 +256,33 @@ const App = () => {
                   sendMessage();
                 }
               }}
-            />
+            /> */}
             <button
               onClick={startListening}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-300 ml-2"
+              className={`transform p-2 ml-2 border border-black rounded-3xl w-full flex items-center justify-center relative ${
+                isListening ? "bg-jindo-orange text-white" : ""
+              }`}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
             >
               <img
                 src={micIcon}
                 alt="Mic"
-                className={`h-6 w-6 ${
-                  isListening ? "bg-jindo-orange rounded-full" : ""
-                }`}
+                className="absolute left-3 h-6 w-6"
               />
+              {isListening ? (
+                <span className="text-white text-center">Listening...</span>
+              ) : input ? (
+                <span className="text-jindo-orange">{input}</span>
+              ) : (
+                <span className="text-jindo-orange font-bold text-center">
+                  Tap to ask Jindo a question
+                </span>
+              )}
             </button>
           </div>
           <button
