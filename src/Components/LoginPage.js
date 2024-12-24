@@ -43,20 +43,20 @@ const LoginPage = () => {
   };
 
 
-  useEffect(() => {
-    onAuthStateChanged(authentication, (user) => {
-      if (user) {
-        navigate("/");
-      } else {
-        authentication.signOut();
-      }
-    });
-  }, []);
+//   useEffect(() => {
+//     onAuthStateChanged(authentication, (user) => {
+//       if (user) {
+//         navigate("/");
+//       } else {
+//         authentication.signOut();
+//       }
+//     });
+//   }, []);
 
   return (
     <div className="flex h-screen">
       {/* Left Section */}
-      <div className="w-1/2 flex items-center justify-center bg-blue-50">
+      <div className="w-1/2 items-center justify-center bg-blue-50 hidden md:flex">
         <div className="text-center">
           <img src={loginlogo} alt="AI Bot" className="w-80 mx-auto mb-6" />
           <p className="text-lg text-gray-600">Your AI Veterinary Assistant</p>
@@ -64,7 +64,7 @@ const LoginPage = () => {
       </div>
 
       {/* Right Section */}
-      <div className="w-1/2 flex items-center justify-center">
+      <div className="w-full md:w-1/2 flex items-center justify-center">
         <div className="w-full max-w-md p-8 m-auto">
           <div className="text-center mb-10">
             <img src={jindo_color2} alt="Jindo Logo" className="w-32 mx-auto" />
