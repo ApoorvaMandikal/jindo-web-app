@@ -8,34 +8,40 @@ import {
   browserSessionPersistence,
   onAuthStateChanged,
 } from "firebase/auth";
-import { authentication } from "../firebaseConfig";
+import { authentication } from "./../firebaseConfig";
 import jindo_color2 from "../assets/Jindo_color2.png";
 import loginlogo from "../assets/loginlogo.png";
 import { FaGoogle } from "react-icons/fa";
 
 const LoginPage = () => {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
 
-  const signInWithFirebase = async (navigate) => {
-    await setPersistence(authentication, browserSessionPersistence)
-      .then(() => {
-        const provider = new GoogleAuthProvider();
-        return signInWithPopup(authentication, provider)
-          .then((result) => {
-            if (result) {
-              navigate("/", { replace: true });
-            }
-          })
-          .catch((error) => {
-            alert("unable to find user");
-            console.log(error.message);
-          });
-      })
-      .catch((error) => {
-        alert("Error signing in, please try later");
-        console.log(error.message);
-      });
+  console.log("Auth object:", authentication);
+  if (!authentication) {
+    console.error("Firebase Auth not initialized.");
+    alert("Firebase not initialized properly.");
+  }
+  
+  const signInWithFirebase = async (event) => {
+    event.preventDefault(); // Prevent default button behavior
+    try {
+      console.log("Starting Google Sign-In...");
+      await setPersistence(authentication, browserSessionPersistence);
+
+      const provider = new GoogleAuthProvider();
+      console.log("Attempting sign-in popup...");
+      const result = await signInWithPopup(authentication, provider);
+
+      if (result) {
+        console.log("User signed in:", result.user);
+        navigate("/", { replace: true });
+      }
+    } catch (error) {
+      console.error("Sign-in error:", error);
+      alert(`Sign-in error: ${error.message}`);
+    }
   };
+
 
   useEffect(() => {
     onAuthStateChanged(authentication, (user) => {
@@ -114,14 +120,12 @@ const LoginPage = () => {
 
             <div>
               <button
-                type="submit"
                 className="w-full bg-jindo-blue text-white p-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 Sign in
               </button>
               <button
-                onClick={() => signInWithFirebase(navigate)}
-                type="submit"
+                onClick={signInWithFirebase}
                 className="w-full mt-6 bg-jindo-blue text-white p-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center"
               >
                 <FaGoogle className="w-4 h-auto mr-3" />
