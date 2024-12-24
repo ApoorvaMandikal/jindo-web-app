@@ -1,6 +1,7 @@
 import React from "react";
 import jindo_color2 from "../assets/Jindo_color2.png"; // Adjust path to your logo image
 import hamburger from "../assets/hamburger.png"; // Hamburger icon from react-icons
+import { Link } from "react-router-dom";
 
 const Header = ({ toggleSidebar }) => {
   return (
@@ -14,6 +15,7 @@ const Header = ({ toggleSidebar }) => {
       </button>
       {/* Logo */}
       <img src={jindo_color2} alt="Jindo Logo" className="w-32 h-auto md:hidden" />
+      <Link to="/login">Login</Link>
     </div>
   );
 };
