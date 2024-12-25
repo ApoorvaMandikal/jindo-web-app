@@ -1,10 +1,12 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   GoogleAuthProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   setPersistence,
   browserSessionPersistence,
   onAuthStateChanged,
@@ -23,9 +25,12 @@ const LoginPage = ({ setIsGuest, isGuest }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(authentication, (user) => {
       if (user) {
-        navigate("/");  // Redirect if authenticated
+        navigate("/");
+      } else {
+        authentication.signOut();
       }
     });
+
     return () => unsubscribe();
   }, [navigate]);
 
@@ -199,7 +204,7 @@ const LoginPage = ({ setIsGuest, isGuest }) => {
               </button>
             </div>
           </form>
-          <button onClick={handleGuestLogin} className="text-jindo-blue text-center w-full mt-6">Continue as Guest</button> 
+          {/* <button onClick={handleGuestLogin} className="text-jindo-blue text-center w-full mt-6">Continue as Guest</button>  */}
         </div>
       </div>
     </div>

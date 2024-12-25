@@ -7,10 +7,7 @@ import { authentication, signOut } from "../firebaseConfig";
 const Header = ({ toggleSidebar, isGuest, setIsGuest }) => {
   const navigate = useNavigate();
   const logout = () => {
-    authentication.signOut().then(() => {
-      setIsGuest(false);  
-      navigate("/login");  
-    });
+    authentication.signOut()
   };
 
   return (
