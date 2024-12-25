@@ -1,9 +1,10 @@
 import React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
   setPersistence,
   browserSessionPersistence,
   onAuthStateChanged,
@@ -16,14 +17,82 @@ import { FaGoogle } from "react-icons/fa";
 const LoginPage = () => {
   const navigate = useNavigate();
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    onAuthStateChanged(authentication, (user) => {
+      if (user) {
+        navigate("/");
+      } else {
+        authentication.signOut();
+      }
+    });
+  }, []);
+
+
   console.log("Auth object:", authentication);
   if (!authentication) {
     console.error("Firebase Auth not initialized.");
     alert("Firebase not initialized properly.");
   }
-  
+
+
+  const signInWithEmailPassword = async (event) => {
+    event.preventDefault(); // Prevent default form submission
+
+    // Basic validation
+    if (!email || !password) {
+      alert("Please enter both email and password.");
+      return;
+    }
+
+    try {
+      console.log("Attempting Email/Password sign-in...");
+
+      // Attempt to sign in the user
+      const result = await signInWithEmailAndPassword(
+        authentication,
+        email,
+        password
+      );
+
+      // Log the signed-in user info
+      console.log("User signed in successfully:", result.user);
+
+      // Navigate to the home page
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Sign-in error:", error);
+
+      // Display a user-friendly error message
+      switch (error.code) {
+        case "auth/invalid-email":
+          alert("Invalid email address. Please check your input.");
+          break;
+        case "auth/user-not-found":
+          alert(
+            "No user found with this email. Please check your input or sign up."
+          );
+          break;
+        case "auth/wrong-password":
+          alert("Incorrect password. Please try again.");
+          break;
+        case "auth/invalid-credential":
+          alert("Invalid email or password. Please try again.");
+          break;
+        case "auth/too-many-requests":
+          alert("Too many attempts. Try again later.");
+          break;
+        default:
+          alert(`Sign-in failed: ${error.message}`);
+          break;
+      }
+    }
+  };
+
   const signInWithFirebase = async (event) => {
-    event.preventDefault(); // Prevent default button behavior
+    event.preventDefault();
     try {
       console.log("Starting Google Sign-In...");
       await setPersistence(authentication, browserSessionPersistence);
@@ -41,17 +110,6 @@ const LoginPage = () => {
       alert(`Sign-in error: ${error.message}`);
     }
   };
-
-
-  useEffect(() => {
-    onAuthStateChanged(authentication, (user) => {
-      if (user) {
-        navigate("/");
-      } else {
-        authentication.signOut();
-      }
-    });
-  }, []);
 
   return (
     <div className="flex h-screen">
@@ -73,13 +131,15 @@ const LoginPage = () => {
             </h2>
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={signInWithEmailPassword}>
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Email
               </label>
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
                 className="mt-1 p-3 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               />
@@ -92,6 +152,8 @@ const LoginPage = () => {
               <div className="relative">
                 <input
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter password"
                   className="mt-1 p-3 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -120,6 +182,7 @@ const LoginPage = () => {
 
             <div>
               <button
+                type="submit"
                 className="w-full bg-jindo-blue text-white p-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 Sign in
