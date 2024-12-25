@@ -1,21 +1,16 @@
 import React from "react";
 import jindo_color2 from "../assets/Jindo_color2.png"; // Adjust path to your logo image
 import hamburger from "../assets/hamburger.png"; // Hamburger icon from react-icons
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { authentication, signOut } from "../firebaseConfig";
 
-const Header = ({ toggleSidebar }) => {
+const Header = ({ toggleSidebar, isGuest, setIsGuest }) => {
   const navigate = useNavigate();
   const logout = () => {
-    authentication
-      .signOut()
-      // .then(() => {
-      //   navigate("/login"); // Redirect to the login page
-      // })
-      // .catch((error) => {
-      //   console.error("Logout error:", error.message);
-      //   alert("Error during logout, please try again.");
-      // });
+    authentication.signOut().then(() => {
+      setIsGuest(false);  
+      navigate("/login");  
+    });
   };
 
   return (
@@ -33,11 +28,22 @@ const Header = ({ toggleSidebar }) => {
         alt="Jindo Logo"
         className="w-32 h-auto md:hidden"
       />
-      <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded justify-end">
-        {" "}
-        Logout{" "}
-      </button>
-      {/* <Link to="/login">Login</Link> */}
+      {isGuest ? (
+        <Link
+        to="/login"
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+      >
+        Login
+      </Link>
+      ) : (
+        <button
+          onClick={logout}
+          className="bg-red-500 text-white px-4 py-2 rounded justify-end"
+        >
+          {" "}
+          Logout{" "}
+        </button>
+      )}
     </div>
   );
 };

@@ -6,7 +6,7 @@ import micIcon from "./assets/micIcon.png";
 import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
 
-const App = () => {
+const App = ({isGuest, setIsGuest}) => {
   // const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -203,7 +203,7 @@ const App = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <Header toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
+        <Header toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} isGuest={isGuest} setIsGuest={setIsGuest} />
 
         {/* Chat Section */}
         <div className="flex-1 p-6 overflow-y-auto">

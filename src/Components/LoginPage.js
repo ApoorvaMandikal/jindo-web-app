@@ -14,29 +14,32 @@ import jindo_color2 from "../assets/Jindo_color2.png";
 import loginlogo from "../assets/loginlogo.png";
 import { FaGoogle } from "react-icons/fa";
 
-const LoginPage = () => {
+const LoginPage = ({ setIsGuest, isGuest }) => {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    onAuthStateChanged(authentication, (user) => {
+    const unsubscribe = onAuthStateChanged(authentication, (user) => {
       if (user) {
-        navigate("/");
-      } else {
-        authentication.signOut();
+        navigate("/");  // Redirect if authenticated
       }
     });
-  }, []);
+    return () => unsubscribe();
+  }, [navigate]);
 
+
+  const handleGuestLogin = () => {
+    setIsGuest(true);
+    navigate("/");
+  };
 
   console.log("Auth object:", authentication);
   if (!authentication) {
     console.error("Firebase Auth not initialized.");
     alert("Firebase not initialized properly.");
   }
-
 
   const signInWithEmailPassword = async (event) => {
     event.preventDefault(); // Prevent default form submission
@@ -196,6 +199,7 @@ const LoginPage = () => {
               </button>
             </div>
           </form>
+          <button onClick={handleGuestLogin} className="text-jindo-blue text-center w-full mt-6">Continue as Guest</button> 
         </div>
       </div>
     </div>
