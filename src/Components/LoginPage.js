@@ -6,7 +6,6 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   setPersistence,
   browserSessionPersistence,
   onAuthStateChanged,
