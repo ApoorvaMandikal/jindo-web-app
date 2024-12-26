@@ -5,8 +5,9 @@ import next from "./assets/next.png";
 import micIcon from "./assets/micIcon.png";
 import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
+import { MdEdit } from "react-icons/md";
 
-const App = ({isGuest, setIsGuest}) => {
+const App = ({ isGuest, setIsGuest }) => {
   // const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,6 +18,7 @@ const App = ({isGuest, setIsGuest}) => {
   const [chatHistory, setChatHistory] = useState({});
   const [currentChatId, setCurrentChatId] = useState(null);
   const [initialized, setInitialized] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (initialized) {
@@ -143,6 +145,7 @@ const App = ({isGuest, setIsGuest}) => {
   };
 
   const startListening = () => {
+    if (isEditing) return;
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
       alert("Speech recognition not supported in this browser.");
       return;
@@ -181,6 +184,11 @@ const App = ({isGuest, setIsGuest}) => {
     }
   };
 
+  const handleEditClick = () => {
+    setIsEditing(true); // Enable editing when edit button is clicked
+  };
+
+
   return (
     <div className="flex h-screen font-sans">
       {/* Sidebar */}
@@ -203,7 +211,11 @@ const App = ({isGuest, setIsGuest}) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <Header toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} isGuest={isGuest} setIsGuest={setIsGuest} />
+        <Header
+          toggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          isGuest={isGuest}
+          setIsGuest={setIsGuest}
+        />
 
         {/* Chat Section */}
         <div className="flex-1 p-6 overflow-y-auto">
@@ -259,15 +271,18 @@ const App = ({isGuest, setIsGuest}) => {
             /> */}
             <button
               onClick={startListening}
-              className={`transform h-full p-2 ml-2 border border-black rounded-3xl w-full flex items-center justify-center relative ${
+              className={`transform h-full p-2 ml-2 border border-black rounded-3xl flex items-center justify-center relative w-full ${
                 isListening ? "bg-jindo-orange text-white" : ""
               }`}
+              disabled={isEditing}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
                   sendMessage();
+                  setIsEditing(false);
                 }
               }}
+              
             >
               <img
                 src={micIcon}
@@ -276,8 +291,16 @@ const App = ({isGuest, setIsGuest}) => {
               />
               {isListening ? (
                 <span className="text-white text-center">Listening...</span>
-              ) : input ? (
-                <span className="text-jindo-orange">{input}</span>
+              ) : input || isEditing ? (
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)} // Update the input text as user types
+                  onClick={() =>  setIsEditing(true)} // Focus the input if not in edit mode
+                  className="text-jindo-orange bg-transparent border-none focus:ring-0 "
+                  disabled={!isEditing} // Disable editing if not in edit mode
+
+                />
               ) : (
                 <span className="text-jindo-orange font-bold text-center">
                   Tap to ask Jindo a question
@@ -285,6 +308,8 @@ const App = ({isGuest, setIsGuest}) => {
               )}
             </button>
           </div>
+
+          {/* Send Message Button */}
           <button
             onClick={sendMessage}
             disabled={loading}
@@ -296,6 +321,16 @@ const App = ({isGuest, setIsGuest}) => {
               <img src={next} alt="Submit" className="h-6 w-6" />
             )}
           </button>
+
+          {/* Edit Button */}
+          {input && !isEditing && (
+            <button
+              onClick={handleEditClick} // Enable editing
+              className="ml-2 p-3 rounded-md"
+            >
+              <MdEdit className="h-6 w-6" />
+            </button>
+          )}
         </div>
       </div>
     </div>
