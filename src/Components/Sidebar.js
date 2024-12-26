@@ -56,7 +56,7 @@ const Sidebar = ({
         isOpen ? "translate-x-0" : "-translate-x-full md:w-1/4 md:h-full"
       }`}
     >
-      <div className="p-4 flex flex-col space-y-4 h-full">
+      <div className="p-4 flex flex-col space-y-4 overflow-y-scroll max-h-screen">
         {/* Close Button */}
         <div className="flex justify-between md:justify-center items-center">
           <button

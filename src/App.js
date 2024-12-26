@@ -6,7 +6,7 @@ import micIcon from "./assets/micIcon.png";
 import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
 
-const App = () => {
+const App = ({isGuest, setIsGuest}) => {
   // const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -203,7 +203,7 @@ const App = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <Header toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
+        <Header toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} isGuest={isGuest} setIsGuest={setIsGuest} />
 
         {/* Chat Section */}
         <div className="flex-1 p-6 overflow-y-auto">
@@ -244,7 +244,7 @@ const App = () => {
             chatHistory[currentChatId]?.messages?.length ? "mt-auto" : "h-full"
           }`}
         >
-          <div className="w-4/5 md:w-3/5">
+          <div className="w-4/5 md:w-3/5 h-14">
             {/* <input
               type="text"
               value={input}
@@ -259,7 +259,7 @@ const App = () => {
             /> */}
             <button
               onClick={startListening}
-              className={`transform p-2 ml-2 border border-black rounded-3xl w-full flex items-center justify-center relative ${
+              className={`transform h-full p-2 ml-2 border border-black rounded-3xl w-full flex items-center justify-center relative ${
                 isListening ? "bg-jindo-orange text-white" : ""
               }`}
               onKeyDown={(e) => {
