@@ -36,6 +36,10 @@ const categorizeChats = (chatHistory) => {
       categories.past30Days.push({ chatId, ...chat });
     }
   });
+  
+  Object.keys(categories).forEach((key) => {
+    categories[key].sort((a, b) => new Date(b.date) - new Date(a.date));
+  });
 
   return categories;
 };
