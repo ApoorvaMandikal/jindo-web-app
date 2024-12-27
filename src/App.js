@@ -307,22 +307,22 @@ const App = ({ isGuest, setIsGuest }) => {
               <img
                 src={micIcon}
                 alt="Mic"
-                className="absolute left-3 h-6 w-6"
+                className="mr-3 left-3 h-6 w-6"
               />
               {isListening ? (
-                <span className="text-white text-center">Listening...</span>
+                <span className="text-white text-center w-full">Listening...</span>
               ) : input || isEditing ? (
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)} // Update the input text as user types
                   onClick={() =>  setIsEditing(true)} // Focus the input if not in edit mode
-                  className="text-jindo-orange bg-transparent border-none focus:ring-0 "
+                  className="text-jindo-orange bg-transparent border-none focus:ring-0 w-full h-full"
                   disabled={!isEditing} // Disable editing if not in edit mode
 
                 />
               ) : (
-                <span className="text-jindo-orange font-bold text-center">
+                <span className="text-jindo-orange font-bold text-center w-full">
                   Tap to ask Jindo a question
                 </span>
               )}
