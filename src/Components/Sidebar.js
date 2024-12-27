@@ -36,7 +36,7 @@ const categorizeChats = (chatHistory) => {
       categories.past30Days.push({ chatId, ...chat });
     }
   });
-  
+
   Object.keys(categories).forEach((key) => {
     categories[key].sort((a, b) => new Date(b.date) - new Date(a.date));
   });
@@ -91,7 +91,7 @@ const Sidebar = ({
           {categorizedChats.today.length > 0 && (
             <>
               <p className="text-gray-400">TODAY</p>
-              {categorizedChats.today.map(({ chatId, date }) => (
+              {categorizedChats.today.map(({ chatId, date, name }) => (
                 <div
                   key={chatId}
                   className={`flex items-center space-x-2 cursor-pointer rounded-3xl ${
@@ -103,10 +103,11 @@ const Sidebar = ({
                     <img src={chatIcon} alt="chat" className="h-auto" />
                   </div>
                   <p>
-                    {new Date(date).toLocaleTimeString([], {
+                    {name || "New Chat"}
+                    {/* {new Date(date).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
-                    })}
+                    })} */}
                   </p>
                 </div>
               ))}

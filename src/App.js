@@ -68,7 +68,7 @@ const App = ({ isGuest, setIsGuest }) => {
 
   const createNewChat = () => {
     const newChatId = Date.now().toString(); // Unique chat ID
-    const newChat = { date: new Date().toISOString(), messages: [] };
+    const newChat = { date: new Date().toISOString(), messages: [], name: generateChatName(input || '') };
 
     setChatHistory((prev) => {
       const updatedHistory = { ...prev, [newChatId]: newChat };
@@ -82,18 +82,18 @@ const App = ({ isGuest, setIsGuest }) => {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
+  
     // Ensure currentChatId is valid
     if (!currentChatId) {
       const defaultChatId = Date.now().toString();
       const defaultChat = { date: new Date().toISOString(), messages: [] };
-
+  
       setChatHistory((prev) => ({
         ...prev,
         [defaultChatId]: defaultChat,
       }));
       setCurrentChatId(defaultChatId);
-
+  
       localStorage.setItem(
         "chatHistory",
         JSON.stringify({
@@ -103,26 +103,38 @@ const App = ({ isGuest, setIsGuest }) => {
       );
       localStorage.setItem("currentChatId", defaultChatId);
     }
-
+  
     setLoading(true); // Start loading
     setError(""); // Clear errors
-
+  
     const newMessage = { role: "user", content: input };
-
-    setChatHistory((prev) => {
-      const updatedChat = {
-        ...prev[currentChatId],
-        messages: [...(prev[currentChatId]?.messages || []), newMessage],
-      };
-
-      return { ...prev, [currentChatId]: updatedChat };
-    });
-
+  
+    // Update chat name if it's the first message
+    if (chatHistory[currentChatId]?.messages.length === 0) {
+      setChatHistory((prev) => {
+        const updatedChat = {
+          ...prev[currentChatId],
+          name: generateChatName(input),  // First message becomes the chat name
+          messages: [...prev[currentChatId].messages, newMessage],
+        };
+        return { ...prev, [currentChatId]: updatedChat };
+      });
+    } else {
+      setChatHistory((prev) => {
+        const updatedChat = {
+          ...prev[currentChatId],
+          messages: [...(prev[currentChatId]?.messages || []), newMessage],
+        };
+        return { ...prev, [currentChatId]: updatedChat };
+      });
+    }
+  
     try {
       const assistantReply = await sendMessageToLlama2([
         ...(chatHistory[currentChatId]?.messages || []),
         newMessage,
       ]);
+  
       setChatHistory((prev) => {
         const updatedChat = {
           ...prev[currentChatId],
@@ -131,7 +143,6 @@ const App = ({ isGuest, setIsGuest }) => {
             { role: "assistant", content: assistantReply },
           ],
         };
-
         const updatedHistory = { ...prev, [currentChatId]: updatedChat };
         localStorage.setItem("chatHistory", JSON.stringify(updatedHistory));
         return updatedHistory;
@@ -142,6 +153,15 @@ const App = ({ isGuest, setIsGuest }) => {
       setLoading(false);
       setInput(""); // Clear input
     }
+  };
+  
+
+  const generateChatName = (message) => {
+    if (!message) return "New Chat";
+    const words = message.split(' ');
+    words[0] = words[0].charAt(0).toUpperCase()+ words[0].slice(1);
+    const truncated = words.slice(0, 6).join(' '); // First 6 words
+    return truncated + (words.length > 6 ? '...' : '');
   };
 
   const startListening = () => {
@@ -245,7 +265,7 @@ const App = ({ isGuest, setIsGuest }) => {
           </div>
         </div>
         {error && (
-          <div className="text-red-600 mt-4 text-sm text-center">
+          <div className="text-red-600 text-sm text-center">
             <p>{error}</p>
           </div>
         )}
