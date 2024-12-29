@@ -5,8 +5,9 @@ import next from "./assets/next.png";
 import micIcon from "./assets/micIcon.png";
 import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
+import { MdEdit } from "react-icons/md";
 
-const App = ({isGuest, setIsGuest}) => {
+const App = ({ isGuest, setIsGuest }) => {
   // const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,6 +18,7 @@ const App = ({isGuest, setIsGuest}) => {
   const [chatHistory, setChatHistory] = useState({});
   const [currentChatId, setCurrentChatId] = useState(null);
   const [initialized, setInitialized] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (initialized) {
@@ -66,7 +68,7 @@ const App = ({isGuest, setIsGuest}) => {
 
   const createNewChat = () => {
     const newChatId = Date.now().toString(); // Unique chat ID
-    const newChat = { date: new Date().toISOString(), messages: [] };
+    const newChat = { date: new Date().toISOString(), messages: [], name: generateChatName(input || '') };
 
     setChatHistory((prev) => {
       const updatedHistory = { ...prev, [newChatId]: newChat };
@@ -80,18 +82,18 @@ const App = ({isGuest, setIsGuest}) => {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
+  
     // Ensure currentChatId is valid
     if (!currentChatId) {
       const defaultChatId = Date.now().toString();
       const defaultChat = { date: new Date().toISOString(), messages: [] };
-
+  
       setChatHistory((prev) => ({
         ...prev,
         [defaultChatId]: defaultChat,
       }));
       setCurrentChatId(defaultChatId);
-
+  
       localStorage.setItem(
         "chatHistory",
         JSON.stringify({
@@ -101,26 +103,38 @@ const App = ({isGuest, setIsGuest}) => {
       );
       localStorage.setItem("currentChatId", defaultChatId);
     }
-
+  
     setLoading(true); // Start loading
     setError(""); // Clear errors
-
+  
     const newMessage = { role: "user", content: input };
-
-    setChatHistory((prev) => {
-      const updatedChat = {
-        ...prev[currentChatId],
-        messages: [...(prev[currentChatId]?.messages || []), newMessage],
-      };
-
-      return { ...prev, [currentChatId]: updatedChat };
-    });
-
+  
+    // Update chat name if it's the first message
+    if (chatHistory[currentChatId]?.messages.length === 0) {
+      setChatHistory((prev) => {
+        const updatedChat = {
+          ...prev[currentChatId],
+          name: generateChatName(input),  // First message becomes the chat name
+          messages: [...prev[currentChatId].messages, newMessage],
+        };
+        return { ...prev, [currentChatId]: updatedChat };
+      });
+    } else {
+      setChatHistory((prev) => {
+        const updatedChat = {
+          ...prev[currentChatId],
+          messages: [...(prev[currentChatId]?.messages || []), newMessage],
+        };
+        return { ...prev, [currentChatId]: updatedChat };
+      });
+    }
+  
     try {
       const assistantReply = await sendMessageToLlama2([
         ...(chatHistory[currentChatId]?.messages || []),
         newMessage,
       ]);
+  
       setChatHistory((prev) => {
         const updatedChat = {
           ...prev[currentChatId],
@@ -129,7 +143,6 @@ const App = ({isGuest, setIsGuest}) => {
             { role: "assistant", content: assistantReply },
           ],
         };
-
         const updatedHistory = { ...prev, [currentChatId]: updatedChat };
         localStorage.setItem("chatHistory", JSON.stringify(updatedHistory));
         return updatedHistory;
@@ -141,8 +154,18 @@ const App = ({isGuest, setIsGuest}) => {
       setInput(""); // Clear input
     }
   };
+  
+
+  const generateChatName = (message) => {
+    if (!message) return "New Chat";
+    const words = message.split(' ');
+    words[0] = words[0].charAt(0).toUpperCase()+ words[0].slice(1);
+    const truncated = words.slice(0, 6).join(' '); // First 6 words
+    return truncated + (words.length > 6 ? '...' : '');
+  };
 
   const startListening = () => {
+    if (isEditing) return;
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
       alert("Speech recognition not supported in this browser.");
       return;
@@ -181,6 +204,27 @@ const App = ({isGuest, setIsGuest}) => {
     }
   };
 
+  const handleEditClick = () => {
+    setIsEditing(true); // Enable editing when edit button is clicked
+  };
+
+  
+  const deleteChat = (chatID) => {
+    const updatedHistory = { ...chatHistory };
+    delete updatedHistory[chatID];  // Remove the chat from the object
+    
+    localStorage.setItem("chatHistory", JSON.stringify(updatedHistory));
+    
+    // If the deleted chat was the current one, reset to the first available chat
+    if (currentChatId === chatID) {
+      const remainingChats = Object.keys(updatedHistory);
+      setCurrentChatId(remainingChats.length ? remainingChats[0] : null);
+    }
+    
+    setChatHistory(updatedHistory);
+  };
+
+
   return (
     <div className="flex h-screen font-sans">
       {/* Sidebar */}
@@ -191,6 +235,7 @@ const App = ({isGuest, setIsGuest}) => {
         currentChatId={currentChatId}
         setCurrentChatId={setCurrentChatId}
         createNewChat={createNewChat}
+        onDeleteChat={deleteChat}
       />
 
       {/* Backdrop */}
@@ -203,7 +248,11 @@ const App = ({isGuest, setIsGuest}) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <Header toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} isGuest={isGuest} setIsGuest={setIsGuest} />
+        <Header
+          toggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          isGuest={isGuest}
+          setIsGuest={setIsGuest}
+        />
 
         {/* Chat Section */}
         <div className="flex-1 p-6 overflow-y-auto">
@@ -233,7 +282,7 @@ const App = ({isGuest, setIsGuest}) => {
           </div>
         </div>
         {error && (
-          <div className="text-red-600 mt-4 text-sm text-center">
+          <div className="text-red-600 text-sm text-center">
             <p>{error}</p>
           </div>
         )}
@@ -259,32 +308,45 @@ const App = ({isGuest, setIsGuest}) => {
             /> */}
             <button
               onClick={startListening}
-              className={`transform h-full p-2 ml-2 border border-black rounded-3xl w-full flex items-center justify-center relative ${
+              className={`transform h-full p-2 ml-2 border border-black rounded-3xl flex items-center justify-center relative w-full ${
                 isListening ? "bg-jindo-orange text-white" : ""
               }`}
+              disabled={isEditing}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
                   sendMessage();
+                  setIsEditing(false);
                 }
               }}
+              
             >
               <img
                 src={micIcon}
                 alt="Mic"
-                className="absolute left-3 h-6 w-6"
+                className="left-3 h-6 w-6"
               />
               {isListening ? (
-                <span className="text-white text-center">Listening...</span>
-              ) : input ? (
-                <span className="text-jindo-orange">{input}</span>
+                <span className="text-white text-center w-full">Listening...</span>
+              ) : input || isEditing ? (
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)} // Update the input text as user types
+                  onClick={() =>  setIsEditing(true)} // Focus the input if not in edit mode
+                  className="text-jindo-orange bg-transparent border-none focus:ring-0 w-full h-full"
+                  disabled={!isEditing} // Disable editing if not in edit mode
+
+                />
               ) : (
-                <span className="text-jindo-orange font-bold text-center">
+                <span className="text-jindo-orange font-bold text-center w-full">
                   Tap to ask Jindo a question
                 </span>
               )}
             </button>
           </div>
+
+          {/* Send Message Button */}
           <button
             onClick={sendMessage}
             disabled={loading}
@@ -296,6 +358,16 @@ const App = ({isGuest, setIsGuest}) => {
               <img src={next} alt="Submit" className="h-6 w-6" />
             )}
           </button>
+
+          {/* Edit Button */}
+          {input && !isEditing && (
+            <button
+              onClick={handleEditClick} // Enable editing
+              className="ml-2 p-3 rounded-md"
+            >
+              <MdEdit className="h-6 w-6" />
+            </button>
+          )}
         </div>
       </div>
     </div>

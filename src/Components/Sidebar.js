@@ -2,6 +2,7 @@ import React from "react";
 import jindo_color2 from "./../assets/Jindo_color2.png";
 import chatIcon from "../assets/chatIcon.png";
 import close from "../assets/close.png";
+import { RiDeleteBin6Line } from "react-icons/ri";
 
 // Helper function to categorize chats by date
 const categorizeChats = (chatHistory) => {
@@ -13,7 +14,11 @@ const categorizeChats = (chatHistory) => {
   };
 
   const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
   const startOfYesterday = new Date(startOfToday);
   startOfYesterday.setDate(startOfToday.getDate() - 1);
 
@@ -37,6 +42,10 @@ const categorizeChats = (chatHistory) => {
     }
   });
 
+  Object.keys(categories).forEach((key) => {
+    categories[key].sort((a, b) => new Date(b.date) - new Date(a.date));
+  });
+
   return categories;
 };
 
@@ -47,6 +56,7 @@ const Sidebar = ({
   currentChatId,
   setCurrentChatId,
   createNewChat,
+  onDeleteChat
 }) => {
   const categorizedChats = categorizeChats(chatHistory);
 
@@ -56,7 +66,7 @@ const Sidebar = ({
         isOpen ? "translate-x-0" : "-translate-x-full md:w-1/4 md:h-full"
       }`}
     >
-      <div className="p-4 flex flex-col space-y-4 overflow-y-scroll max-h-screen">
+      <div className="p-4 flex flex-col space-y-4 overflow-y-auto max-h-screen">
         {/* Close Button */}
         <div className="flex justify-between md:justify-center items-center">
           <button
@@ -78,7 +88,7 @@ const Sidebar = ({
           className="bg-jindo-blue text-white py-4 px-4 rounded-3xl mx-4 my-8"
           onClick={createNewChat}
         >
-          + New Chat
+          + New Conversation
         </button>
 
         {/* Grouped Chats */}
@@ -87,7 +97,7 @@ const Sidebar = ({
           {categorizedChats.today.length > 0 && (
             <>
               <p className="text-gray-400">TODAY</p>
-              {categorizedChats.today.map(({ chatId, date }) => (
+              {categorizedChats.today.map(({ chatId, date, name }) => (
                 <div
                   key={chatId}
                   className={`flex items-center space-x-2 cursor-pointer rounded-3xl ${
@@ -98,12 +108,16 @@ const Sidebar = ({
                   <div className="p-2 rounded-md">
                     <img src={chatIcon} alt="chat" className="h-auto" />
                   </div>
+                  <div className="basis-8/12">
                   <p>
-                    {new Date(date).toLocaleTimeString([], {
+                    {name || "New Chat"}
+                    {/* {new Date(date).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
-                    })}
+                    })} */}
                   </p>
+                  </div>
+                  <RiDeleteBin6Line  onClick={() => onDeleteChat(chatId)} />
                 </div>
               ))}
             </>
@@ -113,7 +127,7 @@ const Sidebar = ({
           {categorizedChats.yesterday.length > 0 && (
             <>
               <p className="text-gray-400">YESTERDAY</p>
-              {categorizedChats.yesterday.map(({ chatId, date }) => (
+              {categorizedChats.yesterday.map(({ chatId, date, name }) => (
                 <div
                   key={chatId}
                   className={`flex items-center space-x-2 cursor-pointer rounded-3xl ${
@@ -124,13 +138,17 @@ const Sidebar = ({
                   <div className="p-2 rounded-md">
                     <img src={chatIcon} alt="chat" className="h-auto" />
                   </div>
+                  <div className="basis-8/12">
                   <p>
-                    {new Date(date).toLocaleTimeString([], {
+                    {name || "New Chat"}
+                    {/* {new Date(date).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
-                    })}
+                    })} */}
                   </p>
-                </div>
+                  </div>
+                  <RiDeleteBin6Line onClick={() => onDeleteChat(chatId)} />
+                  </div>
               ))}
             </>
           )}
@@ -139,7 +157,7 @@ const Sidebar = ({
           {categorizedChats.past7Days.length > 0 && (
             <>
               <p className="text-gray-400">PREVIOUS 7 DAYS</p>
-              {categorizedChats.past7Days.map(({ chatId, date }) => (
+              {categorizedChats.past7Days.map(({ chatId, date, name }) => (
                 <div
                   key={chatId}
                   className={`flex items-center space-x-2 cursor-pointer rounded-3xl ${
@@ -150,7 +168,13 @@ const Sidebar = ({
                   <div className="p-2 rounded-md">
                     <img src={chatIcon} alt="chat" className="h-auto" />
                   </div>
-                  <p>{new Date(date).toLocaleDateString()}</p>
+                  <div className="basis-8/12">
+                  <p>
+                    {name || "New Chat"}
+                    {/* {new Date(date).toLocaleDateString()} */}
+                  </p>
+                  </div>
+                  <RiDeleteBin6Line  onClick={() => onDeleteChat(chatId)} />
                 </div>
               ))}
             </>
@@ -160,7 +184,7 @@ const Sidebar = ({
           {categorizedChats.past30Days.length > 0 && (
             <>
               <p className="text-gray-400">PREVIOUS 30 DAYS</p>
-              {categorizedChats.past30Days.map(({ chatId, date }) => (
+              {categorizedChats.past30Days.map(({ chatId, date, name }) => (
                 <div
                   key={chatId}
                   className={`flex items-center space-x-2 cursor-pointer rounded-3xl ${
@@ -171,7 +195,13 @@ const Sidebar = ({
                   <div className="p-2 rounded-md">
                     <img src={chatIcon} alt="chat" className="h-auto" />
                   </div>
-                  <p>{new Date(date).toLocaleDateString()}</p>
+                  <div className="basis-8/12">
+                  <p>
+                    {name || "New Chat"}
+                    {/* {new Date(date).toLocaleDateString()} */}
+                  </p>
+                  </div>
+                  <RiDeleteBin6Line  onClick={() => onDeleteChat(chatId)} />
                 </div>
               ))}
             </>
