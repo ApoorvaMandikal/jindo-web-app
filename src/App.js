@@ -208,6 +208,22 @@ const App = ({ isGuest, setIsGuest }) => {
     setIsEditing(true); // Enable editing when edit button is clicked
   };
 
+  
+  const deleteChat = (chatID) => {
+    const updatedHistory = { ...chatHistory };
+    delete updatedHistory[chatID];  // Remove the chat from the object
+    
+    localStorage.setItem("chatHistory", JSON.stringify(updatedHistory));
+    
+    // If the deleted chat was the current one, reset to the first available chat
+    if (currentChatId === chatID) {
+      const remainingChats = Object.keys(updatedHistory);
+      setCurrentChatId(remainingChats.length ? remainingChats[0] : null);
+    }
+    
+    setChatHistory(updatedHistory);
+  };
+
 
   return (
     <div className="flex h-screen font-sans">
@@ -219,6 +235,7 @@ const App = ({ isGuest, setIsGuest }) => {
         currentChatId={currentChatId}
         setCurrentChatId={setCurrentChatId}
         createNewChat={createNewChat}
+        onDeleteChat={deleteChat}
       />
 
       {/* Backdrop */}
@@ -307,7 +324,7 @@ const App = ({ isGuest, setIsGuest }) => {
               <img
                 src={micIcon}
                 alt="Mic"
-                className="mr-3 left-3 h-6 w-6"
+                className="left-3 h-6 w-6"
               />
               {isListening ? (
                 <span className="text-white text-center w-full">Listening...</span>
