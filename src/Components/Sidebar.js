@@ -100,7 +100,7 @@ const Sidebar = ({
               {categorizedChats.today.map(({ chatId, date, name }) => (
                 <div
                   key={chatId}
-                  className={`flex items-center space-x-2 cursor-pointer rounded-3xl ${
+                  className={`flex items-center space-x-2 p-2 cursor-pointer rounded-3xl ${
                     chatId === currentChatId ? "bg-gray-700" : ""
                   }`}
                   onClick={() => setCurrentChatId(chatId)}
