@@ -45,7 +45,7 @@ const App = ({ isGuest, setIsGuest }) => {
       localStorage.setItem("chatHistory", JSON.stringify(defaultHistory));
       localStorage.setItem("currentChatId", defaultChatId);
     }
-    setInitialized(true); // Ensure re-render after initialization
+    setInitialized(true); 
   }, []);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -54,12 +54,11 @@ const App = ({ isGuest, setIsGuest }) => {
     try {
       const response = await axios.post("http://localhost:11434/api/generate", {
         model: "llama2",
-        prompt: conversation[conversation.length - 1].content, // Send the last user message as the prompt
+        prompt: conversation[conversation.length - 1].content, 
         stream: false,
       });
 
-      // Extract the assistant's response
-      return response.data.response; // Extract the "response" field
+      return response.data.response; 
     } catch (error) {
       console.error("Error communicating with LLaMA 2:", error.message);
       throw new Error("Error connecting to the assistant.");
@@ -67,7 +66,7 @@ const App = ({ isGuest, setIsGuest }) => {
   }
 
   const createNewChat = () => {
-    const newChatId = Date.now().toString(); // Unique chat ID
+    const newChatId = Date.now().toString();
     const newChat = { date: new Date().toISOString(), messages: [], name: generateChatName(input || '') };
 
     setChatHistory((prev) => {
@@ -83,7 +82,6 @@ const App = ({ isGuest, setIsGuest }) => {
   const sendMessage = async () => {
     if (!input.trim()) return;
   
-    // Ensure currentChatId is valid
     if (!currentChatId) {
       const defaultChatId = Date.now().toString();
       const defaultChat = { date: new Date().toISOString(), messages: [] };
@@ -104,17 +102,16 @@ const App = ({ isGuest, setIsGuest }) => {
       localStorage.setItem("currentChatId", defaultChatId);
     }
   
-    setLoading(true); // Start loading
-    setError(""); // Clear errors
+    setLoading(true);
+    setError(""); 
   
     const newMessage = { role: "user", content: input };
   
-    // Update chat name if it's the first message
     if (chatHistory[currentChatId]?.messages.length === 0) {
       setChatHistory((prev) => {
         const updatedChat = {
           ...prev[currentChatId],
-          name: generateChatName(input),  // First message becomes the chat name
+          name: generateChatName(input),  
           messages: [...prev[currentChatId].messages, newMessage],
         };
         return { ...prev, [currentChatId]: updatedChat };
@@ -151,7 +148,7 @@ const App = ({ isGuest, setIsGuest }) => {
       setError(error.message);
     } finally {
       setLoading(false);
-      setInput(""); // Clear input
+      setInput(""); 
     }
   };
   
@@ -160,7 +157,7 @@ const App = ({ isGuest, setIsGuest }) => {
     if (!message) return "New Chat";
     const words = message.split(' ');
     words[0] = words[0].charAt(0).toUpperCase()+ words[0].slice(1);
-    const truncated = words.slice(0, 6).join(' '); // First 6 words
+    const truncated = words.slice(0, 6).join(' '); 
     return truncated + (words.length > 6 ? '...' : '');
   };
 
@@ -176,13 +173,11 @@ const App = ({ isGuest, setIsGuest }) => {
     recognition.lang = "en-US";
 
     if (isListening) {
-      // Stop recognition
       if (recognitionInstance) {
         recognitionInstance.stop();
         setIsListening(false);
       }
     } else {
-      // Start recognition
       const recognition = new SpeechRecognition();
       recognition.lang = "en-US";
 
@@ -191,7 +186,7 @@ const App = ({ isGuest, setIsGuest }) => {
 
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
-        setInput(transcript); // Update recognized text
+        setInput(transcript);
       };
 
       recognition.onerror = (event) => {
@@ -200,22 +195,21 @@ const App = ({ isGuest, setIsGuest }) => {
       };
 
       recognition.start();
-      setRecognitionInstance(recognition); // Save the instance to stop later
+      setRecognitionInstance(recognition); 
     }
   };
 
   const handleEditClick = () => {
-    setIsEditing(true); // Enable editing when edit button is clicked
+    setIsEditing(true); 
   };
 
   
   const deleteChat = (chatID) => {
     const updatedHistory = { ...chatHistory };
-    delete updatedHistory[chatID];  // Remove the chat from the object
+    delete updatedHistory[chatID]; 
     
     localStorage.setItem("chatHistory", JSON.stringify(updatedHistory));
     
-    // If the deleted chat was the current one, reset to the first available chat
     if (currentChatId === chatID) {
       const remainingChats = Object.keys(updatedHistory);
       setCurrentChatId(remainingChats.length ? remainingChats[0] : null);
@@ -238,7 +232,6 @@ const App = ({ isGuest, setIsGuest }) => {
         onDeleteChat={deleteChat}
       />
 
-      {/* Backdrop */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black opacity-50 z-40"
@@ -334,10 +327,10 @@ const App = ({ isGuest, setIsGuest }) => {
                 <input
                   type="text"
                   value={input}
-                  onChange={(e) => setInput(e.target.value)} // Update the input text as user types
-                  onClick={() =>  setIsEditing(true)} // Focus the input if not in edit mode
+                  onChange={(e) => setInput(e.target.value)} 
+                  onClick={() =>  setIsEditing(true)} 
                   className="text-jindo-orange bg-transparent border-none focus:ring-0 w-full h-full"
-                  disabled={!isEditing} // Disable editing if not in edit mode
+                  disabled={!isEditing} 
 
                 />
               ) : (
@@ -348,7 +341,6 @@ const App = ({ isGuest, setIsGuest }) => {
             </button>
           </div>
 
-          {/* Send Message Button */}
           <button
             onClick={sendMessage}
             disabled={loading}
@@ -361,10 +353,9 @@ const App = ({ isGuest, setIsGuest }) => {
             )}
           </button>
 
-          {/* Edit Button */}
           {input && !isEditing && (
             <button
-              onClick={handleEditClick} // Enable editing
+              onClick={handleEditClick} 
               className="ml-2 p-3 rounded-md"
             >
               <MdEdit className="h-6 w-6" />
