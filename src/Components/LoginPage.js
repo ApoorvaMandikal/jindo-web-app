@@ -39,40 +39,30 @@ const LoginPage = ({ setIsGuest, isGuest }) => {
     navigate("/");
   };
 
-  console.log("Auth object:", authentication);
   if (!authentication) {
-    console.error("Firebase Auth not initialized.");
     alert("Firebase not initialized properly.");
   }
 
   const signInWithEmailPassword = async (event) => {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault(); 
 
-    // Basic validation
     if (!email || !password) {
       alert("Please enter both email and password.");
       return;
     }
 
     try {
-      console.log("Attempting Email/Password sign-in...");
 
-      // Attempt to sign in the user
       const result = await signInWithEmailAndPassword(
         authentication,
         email,
         password
       );
 
-      // Log the signed-in user info
-      console.log("User signed in successfully:", result.user);
 
-      // Navigate to the home page
       navigate("/", { replace: true });
     } catch (error) {
-      console.error("Sign-in error:", error);
 
-      // Display a user-friendly error message
       switch (error.code) {
         case "auth/invalid-email":
           alert("Invalid email address. Please check your input.");
@@ -101,26 +91,21 @@ const LoginPage = ({ setIsGuest, isGuest }) => {
   const signInWithFirebase = async (event) => {
     event.preventDefault();
     try {
-      console.log("Starting Google Sign-In...");
       await setPersistence(authentication, browserSessionPersistence);
 
       const provider = new GoogleAuthProvider();
-      console.log("Attempting sign-in popup...");
       const result = await signInWithPopup(authentication, provider);
 
       if (result) {
-        console.log("User signed in:", result.user);
         navigate("/", { replace: true });
       }
     } catch (error) {
-      console.error("Sign-in error:", error);
       alert(`Sign-in error: ${error.message}`);
     }
   };
 
   return (
     <div className="flex h-screen">
-      {/* Left Section */}
       <div className="w-1/2 items-center justify-center bg-blue-50 hidden md:flex">
         <div className="text-center">
           <img src={loginlogo} alt="AI Bot" className="w-80 mx-auto mb-6" />
@@ -128,7 +113,6 @@ const LoginPage = ({ setIsGuest, isGuest }) => {
         </div>
       </div>
 
-      {/* Right Section */}
       <div className="w-full md:w-1/2 flex items-center justify-center">
         <div className="w-full max-w-md p-8 m-auto">
           <div className="text-center mb-10">

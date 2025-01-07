@@ -67,7 +67,6 @@ const Sidebar = ({
       }`}
     >
       <div className="p-4 flex flex-col space-y-4 overflow-y-auto max-h-screen">
-        {/* Close Button */}
         <div className="flex justify-between md:justify-center items-center">
           <button
             onClick={toggleSidebar}
@@ -83,7 +82,6 @@ const Sidebar = ({
         </div>
         <hr className="border-gray-600"></hr>
 
-        {/* New Chat Button */}
         <button
           className="bg-jindo-blue text-white py-4 px-4 rounded-3xl mx-4 my-8"
           onClick={createNewChat}
