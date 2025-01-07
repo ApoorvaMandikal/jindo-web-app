@@ -1,74 +1,68 @@
-<<<<<<< HEAD
-# Getting Started with Create React App
+# Jindo Web App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Project Overview
+Jindo Web App is a responsive web application designed to integrate advanced chatbot functionalities powered by the LLaMA 2 model. The app allows real-time interactions, user authentication, and dynamic content management. This project is currently under development, with key milestones achieved in frontend, backend, and chatbot integration.
 
-## Available Scripts
+## Features
+- **Responsive Frontend:** Built using ReactJS with dynamic and reusable components.
+- **Backend API:** Designed to handle user data and application logic.
+- **Chatbot Integration:** Real-time chatbot powered by LLaMA 2 through Ollama.
+- **User Authentication:** Secure login and authorization flows.
+- **Modular Design:** Flexible and scalable architecture.
 
-In the project directory, you can run:
+## Installation
 
-### `npm start`
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
+- Git
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/ApoorvaMandikal/jindo-web-app.git
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd jindo-web-app
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Run the application:
+   ```bash
+   npm start
+   ```
+5. Run the model:
+   ```bash
+   ollama run llama3.2
+   ```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `npm test`
+## Usage
+- Access the app at `http://localhost:3000` after running.
+- Log in or create an account to interact with the chatbot.
+- Use the chat interface to engage with the LLaMA 2/3.2-powered chatbot.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Technologies Used
+- **Frontend:** ReactJS, HTML5, CSS3
+- **Backend:** Node.js 
+- **Chatbot:** LLaMA (via Ollama)
+- **Database:** Yet to be used
 
-### `npm run build`
+## Development Progress
+- Project setup and environment configuration
+- Initial frontend layout and component development
+- Basic routing and authentication
+- Chatbot integration and real-time interaction
+- API development (in progress)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Next Steps
+- Enhance chatbot features and add account based storage sessions. 
+- Adding Forgot Password and Remember Me features
+### Phase 2
+- Integration of new features like transcription and summarization along with the chatbot. 
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-=======
-# jindo-web-app
->>>>>>> cc1a31a9a61a88db3ad4678ca40477d4cf8ff4ab
