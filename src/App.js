@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
-import { MdEdit } from "react-icons/md";
 import Chatbot from "./Components/Chatbot";
+import Transcription from "./Components/Transcription";
+import Summary from "./Components/Summary";
 
 const App = ({ isGuest, setIsGuest }) => {
   // const [messages, setMessages] = useState([]);
@@ -13,6 +14,58 @@ const App = ({ isGuest, setIsGuest }) => {
   const [currentChatId, setCurrentChatId] = useState(null);
   const [initialized, setInitialized] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showSecondScreen, setShowSecondScreen] = useState(false);
+  const [isAmbientListening, setIsAmbientListening] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [transcription, setTranscription] = useState("");
+  const [summary, setSummary] = useState(""); 
+  const [loadingSummary, setLoadingSummary] = useState(false); 
+  const [elapsedTime, setElapsedTime] = useState(0); 
+
+  //Ambient Listening
+  useEffect(() => {
+    let timer = null;
+
+    if (!isPaused) {
+      timer = setInterval(() => {
+        setElapsedTime((prev) => prev + 1);
+      }, 1000);
+    }
+
+    return () => clearInterval(timer);
+  }, [isPaused]);
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  // Function to generate summary using the LLaMA model
+  const generateSummary = async (text) => {
+    if (!text.trim()) return;
+    setLoadingSummary(true);
+    try {
+      const response = await axios.post("http://localhost:11434/api/generate", {
+        model: "llama3.2:1b",
+        prompt: `Summarize this conversation: ${text}`,
+        stream: false,
+      });
+      setSummary(response.data.response);
+    } catch (error) {
+      console.error("Error generating summary:", error.message);
+      setSummary("Error generating summary. Please try again.");
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
+ 
+
+  const handleButtonClick = () => {
+    setShowSecondScreen(true);
+  };
 
   useEffect(() => {
     if (initialized) {
@@ -39,15 +92,18 @@ const App = ({ isGuest, setIsGuest }) => {
       localStorage.setItem("chatHistory", JSON.stringify(defaultHistory));
       localStorage.setItem("currentChatId", defaultChatId);
     }
-    setInitialized(true); 
+    setInitialized(true);
   }, []);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-
   const createNewChat = () => {
     const newChatId = Date.now().toString();
-    const newChat = { date: new Date().toISOString(), messages: [], name: generateChatName(input || '') };
+    const newChat = {
+      date: new Date().toISOString(),
+      messages: [],
+      name: generateChatName(input || ""),
+    };
 
     setChatHistory((prev) => {
       const updatedHistory = { ...prev, [newChatId]: newChat };
@@ -60,35 +116,32 @@ const App = ({ isGuest, setIsGuest }) => {
   };
 
 
-
   const generateChatName = (message) => {
     if (!message) return "New Chat";
-    const words = message.split(' ');
-    words[0] = words[0].charAt(0).toUpperCase()+ words[0].slice(1);
-    const truncated = words.slice(0, 6).join(' '); 
-    return truncated + (words.length > 6 ? '...' : '');
+    const words = message.split(" ");
+    words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+    const truncated = words.slice(0, 6).join(" ");
+    return truncated + (words.length > 6 ? "..." : "");
   };
 
- 
+
   const handleEditClick = () => {
-    setIsEditing(true); 
+    setIsEditing(true);
   };
 
-  
   const deleteChat = (chatID) => {
     const updatedHistory = { ...chatHistory };
-    delete updatedHistory[chatID]; 
-    
+    delete updatedHistory[chatID];
+
     localStorage.setItem("chatHistory", JSON.stringify(updatedHistory));
-    
+
     if (currentChatId === chatID) {
       const remainingChats = Object.keys(updatedHistory);
       setCurrentChatId(remainingChats.length ? remainingChats[0] : null);
     }
-    
+
     setChatHistory(updatedHistory);
   };
-
 
   return (
     <div className="flex h-screen font-sans">
@@ -110,20 +163,67 @@ const App = ({ isGuest, setIsGuest }) => {
         ></div>
       )}
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col relative">
         {/* Header */}
         <Header
           toggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
           isGuest={isGuest}
           setIsGuest={setIsGuest}
         />
+          {/* Timer and Pause Button */}
+          <div className="flex items-center gap-2 justify-end p-6 absolute">
+              <div className="text-lg font-bold">Elapsed Time: {formatTime(elapsedTime)}</div>
+              <button
+                onClick={() => setIsPaused((prev) => !prev)}
+                className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600"
+              >
+                {isPaused ? "Resume" : "Pause"}
+              </button>
+            </div>
+        {/* Main Screen */}
+        <div className="flex-1 bg-white py-2 px-6 overflow-hidden h-full">
+          {!isAmbientListening ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <button
+                className="bg-orange-500 text-white py-3 px-6 rounded-full mb-4"
+                onClick={() => setIsAmbientListening(true)}
+              >
+                Start Jindo Ambient AI
+              </button>
+              <p className="text-gray-500 max-w-md">
+                Jindo transcribes and summarizes your daily conversations. It
+                can also answer your questions using data from your recordings,
+                email, and the internet. Just say “Hi Jindo” and ask away!
+              </p>
+            </div>
+          ) : 
+          (
+            <div className="flex flex-col h-full">
+          
+            <div className="flex-1 grid grid-rows-3 grid-flow-col gap-4 h-5/6 w-full">
+              {/* Transcript Section */}
+              <Transcription transcription={transcription} />
+              {/* Summary Section */}
+              <Summary
+                transcription={transcription}
+                summary={summary}
+                generateSummary={generateSummary}
+                loadingSummary={loadingSummary}
+              />
 
-        <Chatbot
+              {/* Chatbot Section */}
+              <Chatbot
                   chatHistory={chatHistory}
                   setChatHistory={setChatHistory}
                   currentChatId={currentChatId}
                   setCurrentChatId={setCurrentChatId}
+                  transcription={transcription}
+                  setTranscription={setTranscription}
                 />
+              </div>
+              </div>
+          )}
+        </div>
       </div>
     </div>
   );
