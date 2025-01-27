@@ -11,6 +11,8 @@ const Chatbot = ({
   setChatHistory,
   currentChatId,
   setCurrentChatId,
+  transcription,
+  setTranscription,
 }) => {
     const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -176,7 +178,7 @@ const Chatbot = ({
 
   
   return (
-    <div className="col-span-1 row-span-2 rounded shadow overflow-auto h-full">
+    <div className="col-span-1 row-span-2 rounded shadow overflow-auto h-full p-6">
           <div className="w-full flex flex-col space-y-4">
             {(chatHistory[currentChatId]?.messages || []).map(
               (message, idx) => (
