@@ -1,30 +1,164 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-const AmbientListener = ({ isListening, setIsListening, setTranscription }) => {
-  const toggleListening = () => {
-    if (isListening) {
-      setIsListening(false);
-      // Stop Whisper (to be implemented)
+
+const AmbientListener = ({
+  isAmbientListening,
+  setIsAmbientListening,
+  setTranscription,
+}) => {
+  const [isPaused, setIsPaused] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [audioChunks, setAudioChunks] = useState([]);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (isAmbientListening) {
+      startTimer();
+      startRecording();
     } else {
-      setIsListening(true);
-      // Start Whisper for transcription (to be implemented)
-      setTranscription("Listening for ambient conversation..."); // Placeholder
+      stopTimer();
+      stopRecording(); // Ensures the microphone is released
+    }
+    return () => {
+      stopTimer();
+      stopRecording();
+    };
+  }, [isAmbientListening]);
+
+  // Timer Logic
+  const startTimer = () => {
+    timerRef.current = setInterval(() => {
+      setElapsedTime((prev) => prev + 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    clearInterval(timerRef.current);
+    timerRef.current = null;
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  // Recording Logic
+  const startRecording = async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.error("Audio recording is not supported in this browser.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        // Save chunks for transcription
+        setAudioChunks(chunks);
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+    }
+  };
+
+  const pauseRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+      mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+      setIsPaused(true);
+      stopTimer();
+      sendToWhisper(audioChunks); // Send the recorded chunks for transcription
+      setAudioChunks([]); // Clear chunks after sending
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder) {
+      if (mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+      }
+      if (mediaRecorder.stream) {
+        mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+      }
+      setMediaRecorder(null);
+    }
+  };
+
+  const sendToWhisper = async (chunks) => {
+    const audioBlob = new Blob(chunks, { type: "audio/wav" });
+    console.log("Audio Blob:", audioBlob); // Debug log
+    console.log("Blob size:", audioBlob.size); // Verify Blob size
+
+    const formData = new FormData();
+    formData.append("file", audioBlob, "recording.wav");
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/transcribe/", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      setTranscription(data.transcription);
+    } catch (error) {
+      console.error("Error sending audio for transcription:", error);
+    }
+  };
+
+  const toggleListening = () => {
+    if (isAmbientListening) {
+      setIsAmbientListening(false); // Stop ambient listening
+    } else {
+      setIsPaused(false);
+      setIsAmbientListening(true); // Start ambient listening
     }
   };
 
   return (
-    <div className="p-4 border rounded-lg bg-white shadow">
-      <h2 className="text-lg font-bold mb-2">Ambient Listening</h2>
-      <button
-        onClick={toggleListening}
-        className={`px-4 py-2 text-white rounded ${
-          isListening ? "bg-red-500" : "bg-green-500"
-        }`}
-      >
-        {isListening ? "Stop Listening" : "Start Listening"}
-      </button>
+    <div className="absolute ">
+      <div className="flex items-center gap-2 w-full border rounded-md bg-white shadow flex-row h-1/4 max-w-sm p-2">
+        {/* Start/Stop Listening Button */}
+        <button
+          onClick={() => setIsAmbientListening(!isAmbientListening)}
+          className={`px-2 py-1 text-xs text-white rounded ${
+            isAmbientListening ? "bg-red-500" : "bg-green-500"
+          }`}
+        >
+          {isAmbientListening ? "Stop Listening" : "Start Listening"}
+        </button>
+  
+        {/* Pause/Resume Button and Elapsed Time */}
+        {isAmbientListening && (
+          <div className="flex flex-row items-center gap-2 flex-grow">
+            <button
+              onClick={pauseRecording}
+              className="px-2 py-1 bg-orange-500 text-xs text-white font-bold rounded-md hover:bg-orange-600"
+            >
+              {isPaused ? "Resume" : "Pause"}
+            </button>
+            <div className="text-xs font-medium truncate">
+              Elapsed Time: {formatTime(elapsedTime)}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
+  
 };
 
 export default AmbientListener;

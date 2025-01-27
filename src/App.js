@@ -5,6 +5,7 @@ import Header from "./Components/Header";
 import Chatbot from "./Components/Chatbot";
 import Transcription from "./Components/Transcription";
 import Summary from "./Components/Summary";
+import AmbientListener from "./Components/AmbientListener";
 
 const App = ({ isGuest, setIsGuest }) => {
   // const [messages, setMessages] = useState([]);
@@ -18,9 +19,9 @@ const App = ({ isGuest, setIsGuest }) => {
   const [isAmbientListening, setIsAmbientListening] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [transcription, setTranscription] = useState("");
-  const [summary, setSummary] = useState(""); 
-  const [loadingSummary, setLoadingSummary] = useState(false); 
-  const [elapsedTime, setElapsedTime] = useState(0); 
+  const [summary, setSummary] = useState("");
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   //Ambient Listening
   useEffect(() => {
@@ -61,7 +62,6 @@ const App = ({ isGuest, setIsGuest }) => {
       setLoadingSummary(false);
     }
   };
- 
 
   const handleButtonClick = () => {
     setShowSecondScreen(true);
@@ -115,7 +115,6 @@ const App = ({ isGuest, setIsGuest }) => {
     setCurrentChatId(newChatId);
   };
 
-
   const generateChatName = (message) => {
     if (!message) return "New Chat";
     const words = message.split(" ");
@@ -123,7 +122,6 @@ const App = ({ isGuest, setIsGuest }) => {
     const truncated = words.slice(0, 6).join(" ");
     return truncated + (words.length > 6 ? "..." : "");
   };
-
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -170,16 +168,31 @@ const App = ({ isGuest, setIsGuest }) => {
           isGuest={isGuest}
           setIsGuest={setIsGuest}
         />
-          {/* Timer and Pause Button */}
-          <div className="flex items-center gap-2 justify-end p-6 absolute">
-              <div className="text-lg font-bold">Elapsed Time: {formatTime(elapsedTime)}</div>
-              <button
-                onClick={() => setIsPaused((prev) => !prev)}
-                className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600"
-              >
-                {isPaused ? "Resume" : "Pause"}
-              </button>
-            </div>
+        {/* Timer and Pause Button
+        <div className="flex items-center gap-2 justify-end p-6 absolute">
+          <div className="text-lg font-bold">
+            Elapsed Time: {formatTime(elapsedTime)}
+          </div>
+          <button
+            onClick={() => {
+              setIsPaused((prev) => !prev);
+              if (!isPaused) {
+                // Pause the recording and send for transcription
+                if (mediaRecorder) {
+                  mediaRecorder.stop(); // Stop recording
+                  sendToWhisper(); // Send the recorded audio to Whisper
+                }
+              } else {
+                // Resume ambient listening
+                startRecording();
+              }
+            }}
+            className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600"
+          >
+            {isPaused ? "Resume" : "Pause"}
+          </button>
+        </div> */}
+
         {/* Main Screen */}
         <div className="flex-1 bg-white py-2 px-6 overflow-hidden h-full">
           {!isAmbientListening ? (
@@ -196,23 +209,30 @@ const App = ({ isGuest, setIsGuest }) => {
                 email, and the internet. Just say “Hi Jindo” and ask away!
               </p>
             </div>
-          ) : 
-          (
+          ) : (
             <div className="flex flex-col h-full">
-          
-            <div className="flex-1 grid grid-rows-3 grid-flow-col gap-4 h-5/6 w-full">
-              {/* Transcript Section */}
-              <Transcription transcription={transcription} />
-              {/* Summary Section */}
-              <Summary
-                transcription={transcription}
-                summary={summary}
-                generateSummary={generateSummary}
-                loadingSummary={loadingSummary}
-              />
+              {/* Ambient Listener Section */}
+              <div className="absolute top-4 left-4">
+                <AmbientListener
+                  isAmbientListening={isAmbientListening}
+                  setIsAmbientListening={setIsAmbientListening}
+                  setTranscription={setTranscription}
+                />
+              </div>
 
-              {/* Chatbot Section */}
-              <Chatbot
+              <div className="flex-1 grid grid-rows-3 grid-flow-col gap-4 h-5/6 w-full">
+                {/* Transcript Section */}
+                <Transcription transcription={transcription} />
+                {/* Summary Section */}
+                <Summary
+                  transcription={transcription}
+                  summary={summary}
+                  generateSummary={generateSummary}
+                  loadingSummary={loadingSummary}
+                />
+
+                {/* Chatbot Section */}
+                <Chatbot
                   chatHistory={chatHistory}
                   setChatHistory={setChatHistory}
                   currentChatId={currentChatId}
@@ -221,7 +241,7 @@ const App = ({ isGuest, setIsGuest }) => {
                   setTranscription={setTranscription}
                 />
               </div>
-              </div>
+            </div>
           )}
         </div>
       </div>
