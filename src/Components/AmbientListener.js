@@ -46,6 +46,7 @@ const AmbientListener = ({
       .padStart(2, "0")}`;
   };
 
+
   // Recording Logic
   const startRecording = async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -77,12 +78,17 @@ const AmbientListener = ({
   };
 
   const pauseRecording = () => {
+    console.log("MediaRecorder state:", mediaRecorder.state); // Should be "recording"
     if (mediaRecorder && mediaRecorder.state === "recording") {
       mediaRecorder.stop();
+      console.log("MediaRecorder state:", mediaRecorder.state); // Should be "recording"
       mediaRecorder.stream.getTracks().forEach((track) => track.stop());
       setIsPaused(true);
       stopTimer();
+      console.log("Final chunks:", audioChunks);
+
       sendToWhisper(audioChunks); // Send the recorded chunks for transcription
+
       setAudioChunks([]); // Clear chunks after sending
     }
   };
@@ -102,6 +108,7 @@ const AmbientListener = ({
   const sendToWhisper = async (chunks) => {
     const audioBlob = new Blob(chunks, { type: "audio/wav" });
     console.log("Audio Blob:", audioBlob); // Debug log
+    console.log("Audio Blob Type:", audioBlob.type); // Should be "audio/wav"
     console.log("Blob size:", audioBlob.size); // Verify Blob size
 
     const formData = new FormData();
@@ -112,12 +119,18 @@ const AmbientListener = ({
         method: "POST",
         body: formData,
       });
+      if (!response.ok) {
+        throw new Error("Failed to transcribe audio.");
+      }
       const data = await response.json();
       setTranscription(data.transcription);
     } catch (error) {
       console.error("Error sending audio for transcription:", error);
     }
   };
+
+  
+  
 
   const toggleListening = () => {
     if (isAmbientListening) {

@@ -11,7 +11,7 @@ const Summary = ({ transcription, summary, generateSummary, loadingSummary }) =>
       )}
       <button
         onClick={() => generateSummary(transcription)}
-        disabled={loadingSummary || !transcription.trim()}
+        disabled={loadingSummary || !transcription}
         className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
       >
         {loadingSummary ? "Generating..." : "Generate Summary"}
