@@ -83,24 +83,28 @@ const AmbientListener = ({
 
   const pauseRecording = () => {
     if (mediaRecorder && mediaRecorder.state === "recording") {
-      mediaRecorder.stop(); // Stops recording
-      console.log("Recording stopped");
-      mediaRecorder.stream.getTracks().forEach((track) => track.stop()); // Stops microphone access
-      setIsPaused(true); // Update state to paused
-      stopTimer(); // Stop the timer
+      let recordedChunks = [];
   
-      // Send recorded audio chunks for transcription
-      if (audioChunks.length > 0) {
-        sendToWhisper(audioChunks)
-          .then(() => {
-            setAudioChunks([]); // Clear chunks after successful transcription
-          })
-          .catch((err) => {
-            console.error("Error during transcription:", err);
-          });
-      } else {
-        console.warn("No audio chunks available to send for transcription.");
-      }
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
+      };
+  
+      mediaRecorder.onstop = () => {
+        if (recordedChunks.length > 0) {
+          setAudioChunks((prevChunks) => [...prevChunks, ...recordedChunks]); // Append new chunks
+          sendToWhisper([...audioChunks, ...recordedChunks]) // Send all recorded chunks
+            .then(() => setAudioChunks([])) // Clear after successful transcription
+            .catch((err) => console.error("Error during transcription:", err));
+        } else {
+          console.warn("No audio chunks available to send for transcription.");
+        }
+      };
+  
+      mediaRecorder.stop();
+      setIsPaused(true);
+      stopTimer();
     }
   };
 
@@ -109,22 +113,22 @@ const AmbientListener = ({
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const recorder = new MediaRecorder(stream);
-        const newChunks = [];
+        let newChunks = [];
   
         recorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
-            newChunks.push(event.data); // Collect new audio chunks
+            newChunks.push(event.data);
           }
         };
   
         recorder.onstop = () => {
-          setAudioChunks((prevChunks) => [...prevChunks, ...newChunks]); // Append new chunks
+          setAudioChunks((prevChunks) => [...prevChunks, ...newChunks]); // Append instead of overwriting
         };
   
-        recorder.start(); // Start recording
-        setMediaRecorder(recorder); // Update state
+        recorder.start();
+        setMediaRecorder(recorder);
         setIsPaused(false);
-        startTimer(); // Resume timer
+        startTimer();
       } catch (error) {
         console.error("Error resuming microphone:", error);
       }
