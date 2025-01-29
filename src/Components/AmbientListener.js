@@ -28,16 +28,20 @@ const AmbientListener = ({
 
   // Timer Logic
   const startTimer = () => {
-    timerRef.current = setInterval(() => {
-      setElapsedTime((prev) => prev + 1);
-    }, 1000);
+    if (!timerRef.current) {
+      timerRef.current = setInterval(() => {
+        setElapsedTime((prev) => prev + 1); // Increment elapsed time by 1 second
+      }, 1000);
+    }
   };
-
+  
   const stopTimer = () => {
-    clearInterval(timerRef.current);
-    timerRef.current = null;
+    if (timerRef.current) {
+      clearInterval(timerRef.current); // Clear the interval
+      timerRef.current = null; // Reset the timer reference to allow restarting
+    }
   };
-
+  
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -78,18 +82,52 @@ const AmbientListener = ({
   };
 
   const pauseRecording = () => {
-    console.log("MediaRecorder state:", mediaRecorder.state); // Should be "recording"
     if (mediaRecorder && mediaRecorder.state === "recording") {
-      mediaRecorder.stop();
-      console.log("MediaRecorder state:", mediaRecorder.state); // Should be "recording"
-      mediaRecorder.stream.getTracks().forEach((track) => track.stop());
-      setIsPaused(true);
-      stopTimer();
-      console.log("Final chunks:", audioChunks);
+      mediaRecorder.stop(); // Stops recording
+      console.log("Recording stopped");
+      mediaRecorder.stream.getTracks().forEach((track) => track.stop()); // Stops microphone access
+      setIsPaused(true); // Update state to paused
+      stopTimer(); // Stop the timer
+  
+      // Send recorded audio chunks for transcription
+      if (audioChunks.length > 0) {
+        sendToWhisper(audioChunks)
+          .then(() => {
+            setAudioChunks([]); // Clear chunks after successful transcription
+          })
+          .catch((err) => {
+            console.error("Error during transcription:", err);
+          });
+      } else {
+        console.warn("No audio chunks available to send for transcription.");
+      }
+    }
+  };
 
-      sendToWhisper(audioChunks); // Send the recorded chunks for transcription
-
-      setAudioChunks([]); // Clear chunks after sending
+  const resumeRecording = async () => {
+    if (isPaused) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        const newChunks = [];
+  
+        recorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            newChunks.push(event.data); // Collect new audio chunks
+          }
+        };
+  
+        recorder.onstop = () => {
+          setAudioChunks((prevChunks) => [...prevChunks, ...newChunks]); // Append new chunks
+        };
+  
+        recorder.start(); // Start recording
+        setMediaRecorder(recorder); // Update state
+        setIsPaused(false);
+        startTimer(); // Resume timer
+      } catch (error) {
+        console.error("Error resuming microphone:", error);
+      }
     }
   };
 
@@ -99,9 +137,12 @@ const AmbientListener = ({
         mediaRecorder.stop();
       }
       if (mediaRecorder.stream) {
-        mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+        mediaRecorder.stream.getTracks().forEach((track) => track.stop()); // Stop all tracks
       }
-      setMediaRecorder(null);
+      setMediaRecorder(null); // Reset recorder
+      setAudioChunks([]); // Clear chunks
+      setIsPaused(false);
+      stopTimer(); // Stop the timer completely
     }
   };
 
@@ -123,30 +164,33 @@ const AmbientListener = ({
         throw new Error("Failed to transcribe audio.");
       }
       const data = await response.json();
-      setTranscription(data.transcription);
-    } catch (error) {
+      setTranscription((prev) => prev + " " + data.transcription); // Append new text    
+       } catch (error) {
       console.error("Error sending audio for transcription:", error);
     }
   };
 
   
   
-
   const toggleListening = () => {
     if (isAmbientListening) {
-      setIsAmbientListening(false); // Stop ambient listening
+      stopRecording(); // Stop everything
+      setIsAmbientListening(false);
     } else {
-      setIsPaused(false);
-      setIsAmbientListening(true); // Start ambient listening
+      setIsPaused(false); // Reset paused state
+      setIsAmbientListening(true); // Start listening
+      startTimer(); // Start the timer
+      startRecording(); // Start recording
     }
   };
+  
 
   return (
     <div className="absolute ">
       <div className="flex items-center gap-2 w-full border rounded-md bg-white shadow flex-row h-1/4 max-w-sm p-2">
         {/* Start/Stop Listening Button */}
         <button
-          onClick={() => setIsAmbientListening(!isAmbientListening)}
+          onClick= {toggleListening}
           className={`px-2 py-1 text-xs text-white rounded ${
             isAmbientListening ? "bg-red-500" : "bg-green-500"
           }`}
@@ -158,8 +202,8 @@ const AmbientListener = ({
         {isAmbientListening && (
           <div className="flex flex-row items-center gap-2 flex-grow">
             <button
-              onClick={pauseRecording}
-              className="px-2 py-1 bg-orange-500 text-xs text-white font-bold rounded-md hover:bg-orange-600"
+onClick={isPaused ? resumeRecording : pauseRecording}              
+className="px-2 py-1 bg-orange-500 text-xs text-white font-bold rounded-md hover:bg-orange-600"
             >
               {isPaused ? "Resume" : "Pause"}
             </button>
