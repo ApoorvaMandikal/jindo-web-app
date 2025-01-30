@@ -22,6 +22,8 @@ const App = ({ isGuest, setIsGuest }) => {
   const [summary, setSummary] = useState("");
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [loading, setLoading] = useState(false);
+
 
   //Ambient Listening
   useEffect(() => {
@@ -217,12 +219,13 @@ const App = ({ isGuest, setIsGuest }) => {
                   isAmbientListening={isAmbientListening}
                   setIsAmbientListening={setIsAmbientListening}
                   setTranscription={setTranscription}
+                  setLoading={setLoading}
                 />
               </div>
 
               <div className="flex-1 grid grid-rows-3 grid-flow-col gap-4 h-5/6 w-full">
                 {/* Transcript Section */}
-                <Transcription transcription={transcription} />
+                <Transcription transcription={transcription} loading={loading} />
                 {/* Summary Section */}
                 <Summary
                   transcription={transcription}

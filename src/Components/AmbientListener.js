@@ -5,12 +5,14 @@ const AmbientListener = ({
   isAmbientListening,
   setIsAmbientListening,
   setTranscription,
+  setLoading
 }) => {
   const [isPaused, setIsPaused] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
   const timerRef = useRef(null);
+
 
   useEffect(() => {
     if (isAmbientListening) {
@@ -151,6 +153,7 @@ const AmbientListener = ({
   };
 
   const sendToWhisper = async (chunks) => {
+    setLoading(true); 
     const audioBlob = new Blob(chunks, { type: "audio/wav" });
     console.log("Audio Blob:", audioBlob); // Debug log
     console.log("Audio Blob Type:", audioBlob.type); // Should be "audio/wav"
@@ -169,8 +172,10 @@ const AmbientListener = ({
       }
       const data = await response.json();
       setTranscription((prev) => prev + " " + data.transcription); // Append new text    
-       } catch (error) {
+    } catch (error) {
       console.error("Error sending audio for transcription:", error);
+    } finally {
+      setLoading(false); // Hide loading state after processing
     }
   };
 
