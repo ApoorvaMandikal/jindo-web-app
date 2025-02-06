@@ -29,7 +29,7 @@ async def transcribe(file: UploadFile = File(...)):
         print(f"File saved at {file_path}")
 
         # Transcribe with Whisper
-        result = model.transcribe(file_path)
+        result = model.transcribe(file_path, language="en")
         transcription = result["text"]
         print(f"Transcription: {transcription}")
 
