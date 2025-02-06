@@ -109,7 +109,7 @@ const LoginPage = ({ setIsGuest, isGuest }) => {
       <div className="w-1/2 items-center justify-center bg-blue-50 hidden md:flex">
         <div className="text-center">
           <img src={loginlogo} alt="AI Bot" className="w-80 mx-auto mb-6" />
-          <p className="text-lg text-gray-600">Your AI Veterinary Assistant</p>
+          <p className="text-lg text-gray-600">Your AI Assistant</p>
         </div>
       </div>
 
@@ -118,7 +118,7 @@ const LoginPage = ({ setIsGuest, isGuest }) => {
           <div className="text-center mb-10">
             <img src={jindo_color2} alt="Jindo Logo" className="w-32 mx-auto" />
             <h2 className="text-2xl font-semibold mt-4">
-              Veterinarian AI Assistant
+              AI Assistant
             </h2>
           </div>
 

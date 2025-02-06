@@ -178,9 +178,13 @@ const Chatbot = ({
 
   
   return (
-    <div className="col-span-1 row-span-2 rounded shadow overflow-auto h-full p-6">
-          <div className="w-full flex flex-col space-y-4">
-            {(chatHistory[currentChatId]?.messages || []).map(
+    <div className="col-span-1 row-span-2 rounded shadow h-full p-6">
+            <h2 className="text-lg font-bold mb-2">Ask Jindo</h2>
+            <div
+      className={`w-full flex flex-col space-y-4 overflow-auto flex-grow ${
+        chatHistory[currentChatId]?.messages?.length ? "h-3/4" : "justify-center"
+      }`}
+    >            {(chatHistory[currentChatId]?.messages || []).map(
               (message, idx) => (
                 <div
                   key={idx}
@@ -212,12 +216,9 @@ const Chatbot = ({
         )}
 
         {/* Input Section */}
-        <div
-          className={`p-4 flex items-center justify-center ${
-            chatHistory[currentChatId]?.messages?.length ? "mt-auto" : "h-full"
-          }`}
-        >
-          <div className="w-4/5 md:w-3/5 h-14">
+        <div className="p-4 flex items-center justify-center">
+
+         <div className="w-4/5 h-14">
             {/* <input
               type="text"
               value={input}

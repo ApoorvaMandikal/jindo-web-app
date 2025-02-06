@@ -223,7 +223,7 @@ const App = ({ isGuest, setIsGuest }) => {
                 />
               </div>
 
-              <div className="flex-1 grid grid-rows-3 grid-flow-col gap-4 h-5/6 w-full">
+              <div className="flex-1 grid grid-rows-3 grid-cols-2 gap-4 h-5/6 w-full">
                 {/* Transcript Section */}
                 <Transcription transcription={transcription} loading={loading} />
                 {/* Summary Section */}
