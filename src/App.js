@@ -53,7 +53,7 @@ const App = ({ isGuest, setIsGuest }) => {
     try {
       const response = await axios.post("http://localhost:11434/api/generate", {
         model: "llama3.2:1b",
-        prompt: `Summarize this conversation: ${text}`,
+        prompt: `Summarize this conversation between an insurance company and their client in 2-3 points: ${text}`,
         stream: false,
       });
       setSummary(response.data.response);
@@ -224,6 +224,9 @@ const App = ({ isGuest, setIsGuest }) => {
               </div>
 
               <div className="flex-1 grid grid-rows-3 grid-cols-2 gap-4 h-5/6 w-full">
+              <div className="p-4 border rounded-lg bg-white shadow col-span-1 row-span-1 overflow-auto">
+              <h2 className="text-lg font-bold mb-2">Insights</h2>
+              </div>
                 {/* Transcript Section */}
                 <Transcription transcription={transcription} loading={loading} />
                 {/* Summary Section */}

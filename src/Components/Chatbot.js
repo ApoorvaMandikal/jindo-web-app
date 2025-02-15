@@ -178,12 +178,13 @@ const Chatbot = ({
 
   
   return (
-    <div className="col-span-1 row-span-2 rounded shadow h-full p-6">
+    <div className="p-6 border rounded-lg bg-white shadow col-span-1 row-span-2 flex flex-col overflow-auto">
             <h2 className="text-lg font-bold mb-2">Ask Jindo</h2>
             <div
-      className={`w-full flex flex-col space-y-4 overflow-auto flex-grow ${
-        chatHistory[currentChatId]?.messages?.length ? "h-3/4" : "justify-center"
-      }`}
+      className={`w-full flex flex-col space-y-4 overflow-auto  
+         ${chatHistory[currentChatId]?.messages?.length ? "flex-1" : "justify-center items-center"
+      }
+      `}
     >            {(chatHistory[currentChatId]?.messages || []).map(
               (message, idx) => (
                 <div

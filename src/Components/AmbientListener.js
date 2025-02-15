@@ -143,6 +143,7 @@ const AmbientListener = ({
         mediaRecorder.stop();
       }
       if (mediaRecorder.stream) {
+        console.log("Stopping media tracks:", mediaRecorder.stream.getTracks());
         mediaRecorder.stream.getTracks().forEach((track) => track.stop()); // Stop all tracks
       }
       setMediaRecorder(null); // Reset recorder
@@ -150,6 +151,7 @@ const AmbientListener = ({
       setIsPaused(false);
       stopTimer(); // Stop the timer completely
     }
+   
   };
 
   const sendToWhisper = async (chunks) => {
@@ -195,17 +197,17 @@ const AmbientListener = ({
   
 
   return (
-    <div className="absolute ">
+    <div className="absolute">
       <div className="flex items-center gap-2 w-full border rounded-md bg-white shadow flex-row h-1/4 max-w-sm p-2">
         {/* Start/Stop Listening Button */}
-        <button
+        {/* <button
           onClick= {toggleListening}
           className={`px-2 py-1 text-xs text-white rounded ${
             isAmbientListening ? "bg-red-500" : "bg-green-500"
           }`}
         >
           {isAmbientListening ? "Stop Listening" : "Start Listening"}
-        </button>
+        </button> */}
   
         {/* Pause/Resume Button and Elapsed Time */}
         {isAmbientListening && (

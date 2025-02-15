@@ -3,7 +3,7 @@ import Rolling from "./../assets/Rolling.svg"
 
 const Transcription = ({ transcription, loading }) => {
   return (
-    <div className="p-4 border rounded-lg bg-white shadow row-span-3 overflow-auto">
+    <div className="p-4 border rounded-lg bg-white shadow col-start-1 col-span-1 row-span-2 overflow-auto">
       <h2 className="text-lg font-bold mb-2">Transcription</h2>
       {loading ? (
         <div className="flex">
