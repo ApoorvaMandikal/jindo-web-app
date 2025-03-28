@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 
-
 const AmbientListener = ({
   isAmbientListening,
   setIsAmbientListening,
   setTranscription,
-  setLoading
+  setLoading,
 }) => {
   const [isPaused, setIsPaused] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -36,14 +35,14 @@ const AmbientListener = ({
       }, 1000);
     }
   };
-  
+
   const stopTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current); // Clear the interval
       timerRef.current = null; // Reset the timer reference to allow restarting
     }
   };
-  
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -84,16 +83,19 @@ const AmbientListener = ({
   };
 
   const pauseRecording = () => {
+    console.log(mediaRecorder.state);
     if (mediaRecorder && mediaRecorder.state === "recording") {
+      console.log("hitting here 1");
       let recordedChunks = [];
-  
+
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           recordedChunks.push(event.data);
         }
       };
-  
+
       mediaRecorder.onstop = () => {
+        console.log("hitting here 2");
         if (recordedChunks.length > 0) {
           setAudioChunks((prevChunks) => [...prevChunks, ...recordedChunks]); // Append new chunks
           sendToWhisper([...audioChunks, ...recordedChunks]) // Send all recorded chunks
@@ -103,30 +105,38 @@ const AmbientListener = ({
           console.warn("No audio chunks available to send for transcription.");
         }
       };
-  
+
       mediaRecorder.stop();
+      console.log(mediaRecorder.state);
+      mediaRecorder.stream.getTracks().forEach((track) => track.stop()); // Release mic access
+      console.log("MediaRecorder state after stopping:", mediaRecorder.state);
+
       setIsPaused(true);
       stopTimer();
+    } else {
+      console.warn("Cannot pause: No active recording.");
     }
   };
 
   const resumeRecording = async () => {
     if (isPaused) {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
         const recorder = new MediaRecorder(stream);
         let newChunks = [];
-  
+
         recorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
             newChunks.push(event.data);
           }
         };
-  
+
         recorder.onstop = () => {
           setAudioChunks((prevChunks) => [...prevChunks, ...newChunks]); // Append instead of overwriting
         };
-  
+
         recorder.start();
         setMediaRecorder(recorder);
         setIsPaused(false);
@@ -142,18 +152,21 @@ const AmbientListener = ({
       if (mediaRecorder.state === "recording") {
         mediaRecorder.stop();
       }
-      if (mediaRecorder.stream) {
+        if (mediaRecorder.stream) {
+        console.log("Stopping media tracks:", mediaRecorder.stream.getTracks());
         mediaRecorder.stream.getTracks().forEach((track) => track.stop()); // Stop all tracks
       }
       setMediaRecorder(null); // Reset recorder
       setAudioChunks([]); // Clear chunks
-      setIsPaused(false);
+        setIsPaused(false);
       stopTimer(); // Stop the timer completely
     }
+   
   };
 
   const sendToWhisper = async (chunks) => {
-    setLoading(true); 
+    console.log("hitting here-sendToWhisper");
+    setLoading(true);
     const audioBlob = new Blob(chunks, { type: "audio/wav" });
     console.log("Audio Blob:", audioBlob); // Debug log
     console.log("Audio Blob Type:", audioBlob.type); // Should be "audio/wav"
@@ -164,23 +177,22 @@ const AmbientListener = ({
 
     try {
       const response = await fetch("http://127.0.0.1:8000/transcribe/", {
-        method: "POST",
-        body: formData,
+          method: "POST",
+          body: formData,
       });
       if (!response.ok) {
         throw new Error("Failed to transcribe audio.");
       }
       const data = await response.json();
-      setTranscription((prev) => prev + " " + data.transcription); // Append new text    
+      setTranscription((prev) => prev + " " + data.transcription);
+      console.log(data.transcription);
     } catch (error) {
       console.error("Error sending audio for transcription:", error);
     } finally {
-      setLoading(false); // Hide loading state after processing
+      setLoading(false);
     }
   };
 
-  
-  
   const toggleListening = () => {
     if (isAmbientListening) {
       stopRecording(); // Stop everything
@@ -192,27 +204,28 @@ const AmbientListener = ({
       startRecording(); // Start recording
     }
   };
-  
 
   return (
-    <div className="absolute ">
+    <div className="md:absolute">
       <div className="flex items-center gap-2 w-full border rounded-md bg-white shadow flex-row h-1/4 max-w-sm p-2">
         {/* Start/Stop Listening Button */}
         <button
-          onClick= {toggleListening}
-          className={`px-2 py-1 text-xs text-white rounded ${
-            isAmbientListening ? "bg-red-500" : "bg-green-500"
-          }`}
+          onClick={stopRecording}
+          className="px-2 py-1 text-xs text-white rounded bg-red-500"
         >
-          {isAmbientListening ? "Stop Listening" : "Start Listening"}
+          {/*   className={`px-2 py-1 text-xs text-white rounded ${
+        //     isAmbientListening ? "bg-red-500" : "bg-green-500"
+        //   }`}
+           {isAmbientListening ? "Stop Listening" : "Start Listening"}*/}
+          Stop Listening
         </button>
-  
+
         {/* Pause/Resume Button and Elapsed Time */}
         {isAmbientListening && (
           <div className="flex flex-row items-center gap-2 flex-grow">
             <button
-onClick={isPaused ? resumeRecording : pauseRecording}              
-className="px-2 py-1 bg-orange-500 text-xs text-white font-bold rounded-md hover:bg-orange-600"
+              onClick={isPaused ? resumeRecording : pauseRecording}
+              className="px-2 py-1 bg-orange-500 text-xs text-white font-bold rounded-md hover:bg-orange-600"
             >
               {isPaused ? "Resume" : "Pause"}
             </button>
@@ -224,7 +237,6 @@ className="px-2 py-1 bg-orange-500 text-xs text-white font-bold rounded-md hover
       </div>
     </div>
   );
-  
 };
 
 export default AmbientListener;
